@@ -33,6 +33,58 @@ h1, h2, h3, h4, h5, h6 {
     @apply border border-white/30 bg-white/5 backdrop-blur-sm;
 }
 
+.site-consent-banner,
+.app-install-prompt {
+    position: fixed;
+    right: 1.25rem;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid rgba(50, 21, 47, 0.12);
+    background: rgba(247, 242, 233, 0.96);
+    box-shadow: 0 18px 50px rgba(50, 21, 47, 0.2);
+    backdrop-filter: blur(16px);
+}
+
+.site-consent-banner {
+    bottom: 1.25rem;
+    left: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-radius: 1rem;
+}
+
+.app-install-prompt {
+    bottom: 7rem;
+    left: 1.25rem;
+    max-width: 22rem;
+    display: block;
+    padding: 1rem;
+    border-radius: 1.25rem;
+}
+
+[data-cookie-banner][hidden],
+[data-install-prompt][hidden] {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .site-consent-banner {
+        display: block;
+    }
+
+    .site-consent-banner > div:last-child {
+        margin-top: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .app-install-prompt {
+        right: 1.25rem;
+        bottom: 11rem;
+    }
+}
+
 .portal-card {
     position: relative;
     border-radius: 1.5rem;
