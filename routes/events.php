@@ -22,3 +22,13 @@ Route::domain('localhost')->group(function () {
     Route::get('/events/{slug}/success', [EventController::class, 'success'])->name('events.success.local');
     Route::get('/events/{slug}/tickets/{reference}/pdf', [EventController::class, 'downloadTicket'])->name('events.ticket.pdf.local');
 });
+
+Route::domain('localhost')->prefix('thestellarsurge/public')->group(function () {
+    Route::get('/events', [EventController::class, 'index'])->name('events.index.path');
+    Route::get('/events/{slug}', [EventController::class, 'show'])->name('events.show.path');
+    Route::get('/events/{slug}/checkout', [EventController::class, 'checkout'])->name('events.checkout.path');
+    Route::post('/events/{slug}/checkout', [EventController::class, 'purchase'])->name('events.purchase.path');
+    Route::get('/events/payment/callback', [EventController::class, 'callback'])->name('events.payment.callback.path');
+    Route::get('/events/{slug}/success', [EventController::class, 'success'])->name('events.success.path');
+    Route::get('/events/{slug}/tickets/{reference}/pdf', [EventController::class, 'downloadTicket'])->name('events.ticket.pdf.path');
+});

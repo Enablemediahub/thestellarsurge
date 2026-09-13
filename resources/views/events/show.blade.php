@@ -5,7 +5,7 @@
         $eventImage = $event->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80';
     @endphp
     <div class="section-shell py-16">
-        <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.index') : route('events.index.local') }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to events</a>
+        <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.index') : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.index.path') : route('events.index.local')) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to events</a>
 
         <div class="mt-8 overflow-hidden rounded-[2rem] border border-[#eadfcf] bg-white shadow-brand">
             <div class="h-72 bg-cover bg-center" style="background-image: url('{{ $eventImage }}');"></div>
@@ -33,7 +33,7 @@
                         <li><strong>Venue:</strong> {{ $event->venue ?? 'To be announced' }}</li>
                     </ul>
 
-                    <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.checkout', ['slug' => $event->slug]) : route('events.checkout.local', ['slug' => $event->slug]) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Reserve ticket</a>
+                    <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.checkout', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.checkout.path', ['slug' => $event->slug]) : route('events.checkout.local', ['slug' => $event->slug])) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Reserve ticket</a>
                 </aside>
             </div>
         </div>

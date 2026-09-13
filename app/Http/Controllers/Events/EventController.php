@@ -108,7 +108,9 @@ class EventController extends Controller
             'email' => $validated['email'],
             'reference' => $paymentReference,
             'currency' => $event->currency,
-            'callback_url' => $request->getSchemeAndHttpHost() . ($request->getHost() === 'events.thestellarsurge.com' ? route('events.payment.callback', absolute: false) : route('events.payment.callback.local', absolute: false)),
+            'callback_url' => $request->getSchemeAndHttpHost() . ($request->getHost() === 'events.thestellarsurge.com'
+                ? route('events.payment.callback', absolute: false)
+                : (str_starts_with($request->getRequestUri(), '/thestellarsurge/public') ? route('events.payment.callback.path', absolute: false) : route('events.payment.callback.local', absolute: false))),
             'metadata' => [
                 'event_id' => $event->id,
                 'ticket_ids' => $tickets->pluck('id')->all(),
@@ -125,7 +127,11 @@ class EventController extends Controller
         $reference = $request->query('reference');
 
         if (! $reference) {
-            return redirect()->route('events.index.local')->with('error', 'Payment verification failed.');
+            $indexRoute = request()->getHost() === 'events.thestellarsurge.com'
+                ? 'events.index'
+                : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? 'events.index.path' : 'events.index.local');
+
+            return redirect()->route($indexRoute)->with('error', 'Payment verification failed.');
         }
 
         $payment = Payment::query()->where('reference', $reference)->firstOrFail();
@@ -167,7 +173,11 @@ class EventController extends Controller
             }
         }
 
-        return redirect()->route('events.success.local', ['slug' => $payment->event?->slug ?? 'event', 'reference' => $reference]);
+        $successRoute = request()->getHost() === 'events.thestellarsurge.com'
+            ? 'events.success'
+            : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? 'events.success.path' : 'events.success.local');
+
+        return redirect()->route($successRoute, ['slug' => $payment->event?->slug ?? 'event', 'reference' => $reference]);
     }
 
     public function success(string $slug, Request $request)

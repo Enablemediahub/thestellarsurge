@@ -10,3 +10,7 @@ Route::domain('entrepreneurship.thestellarsurge.com')->group(function () {
 Route::domain('localhost')->group(function () {
     Route::get('/entrepreneurship', [EntrepreneurshipController::class, 'index'])->name('entrepreneurship.index.local');
 });
+
+Route::domain('localhost')->prefix('thestellarsurge/public')->group(function () {
+    Route::get('/entrepreneurship', [EntrepreneurshipController::class, 'index'])->name('entrepreneurship.index.path');
+});

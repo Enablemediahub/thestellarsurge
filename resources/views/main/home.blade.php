@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $isLocalHost = request()->getHost() === 'localhost';
+        $eventsPortalUrl = $isLocalHost ? route('events.index.path') : route('events.index');
+        $entrepreneurshipPortalUrl = $isLocalHost ? route('entrepreneurship.index.path') : route('entrepreneurship.index');
+        $trainingPortalUrl = $isLocalHost ? route('training.index.path') : route('training.index');
+    @endphp
     <header class="hero-wallpaper text-ivory">
         @foreach ($siteSettings->heroSlides as $index => $heroSlide)
             <div class="hero-slide hero-slide--{{ $index + 1 }}" style="background-image: url('{{ $heroSlide }}');"></div>
@@ -20,7 +26,7 @@
             </div>
 
             <div class="hidden md:block">
-                <a href="https://events.thestellarsurge.com" class="rounded-full border border-gold px-5 py-2 text-sm font-medium text-gold transition hover:bg-gold hover:text-plum">Enter the Surge</a>
+                <a href="{{ $eventsPortalUrl }}" class="rounded-full border border-gold px-5 py-2 text-sm font-medium text-gold transition hover:bg-gold hover:text-plum">Enter the Surge</a>
             </div>
         </nav>
 
@@ -36,21 +42,21 @@
             </div>
 
             <div class="mt-14 grid gap-6 md:grid-cols-3">
-                <a href="https://events.thestellarsurge.com" class="portal-badge" aria-label="Event & Project Management">
+                <a href="{{ $eventsPortalUrl }}" class="portal-badge" aria-label="Event & Project Management">
                     <div class="portal-badge__thumb">
                         <img src="{{ asset('logos/Events.png') }}" alt="Event & Project Management" />
                     </div>
                     <span class="portal-badge__text">Event &amp; Project<br>Management</span>
                 </a>
 
-                <a href="https://entrepreneurship.thestellarsurge.com" class="portal-badge" aria-label="Entrepreneurial & Empowerment">
+                <a href="{{ $entrepreneurshipPortalUrl }}" class="portal-badge" aria-label="Entrepreneurial & Empowerment">
                     <div class="portal-badge__thumb">
                         <img src="{{ asset('logos/Entrepreneirship.png') }}" alt="Entrepreneurial & Empowerment" />
                     </div>
                     <span class="portal-badge__text">Entrepreneurial &amp;<br>Empowerment</span>
                 </a>
 
-                <a href="https://training.thestellarsurge.com" class="portal-badge" aria-label="Skill Training with MasterClasses">
+                <a href="{{ $trainingPortalUrl }}" class="portal-badge" aria-label="Skill Training with MasterClasses">
                     <div class="portal-badge__thumb">
                         <img src="{{ asset('logos/Training.png') }}" alt="Skill Training with MasterClasses" />
                     </div>
@@ -77,7 +83,7 @@
                 </div>
 
                 <div class="grid gap-6 md:grid-cols-3">
-                    <a href="https://events.thestellarsurge.com" class="portal-card">
+                    <a href="{{ $eventsPortalUrl }}" class="portal-card">
                         <div class="portal-color-thumb portal-color-thumb--events mb-6" style="--portal-events-color: {{ $siteSettings->events_color ?: '#E17B7C' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->events_logo_path, asset('logos/Events.png')) }}" alt="" />
                         </div>
@@ -87,7 +93,7 @@
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
 
-                    <a href="https://entrepreneurship.thestellarsurge.com" class="portal-card">
+                    <a href="{{ $entrepreneurshipPortalUrl }}" class="portal-card">
                         <div class="portal-color-thumb portal-color-thumb--growth mb-6" style="--portal-growth-color: {{ $siteSettings->growth_color ?: '#F9AD2D' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->growth_logo_path, asset('logos/Entrepreneirship.png')) }}" alt="" />
                         </div>
@@ -97,7 +103,7 @@
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
 
-                    <a href="https://training.thestellarsurge.com" class="portal-card">
+                    <a href="{{ $trainingPortalUrl }}" class="portal-card">
                         <div class="portal-color-thumb portal-color-thumb--learning mb-6" style="--portal-learning-color: {{ $siteSettings->training_color ?: '#159D99' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->training_logo_path, asset('logos/Training.png')) }}" alt="" />
                         </div>
@@ -117,7 +123,7 @@
                         <p class="text-sm uppercase tracking-[0.3em] text-plum/70">Featured</p>
                         <h2 class="mt-4 text-4xl text-plum md:text-5xl">Upcoming experiences</h2>
                     </div>
-                    <a href="https://events.thestellarsurge.com" class="hidden text-sm font-semibold uppercase tracking-[0.2em] text-plum md:inline-block">View all</a>
+                    <a href="{{ $eventsPortalUrl }}" class="hidden text-sm font-semibold uppercase tracking-[0.2em] text-plum md:inline-block">View all</a>
                 </div>
 
                 <div class="grid gap-6 md:grid-cols-3">
@@ -187,9 +193,9 @@
             <div>
                 <p class="text-sm uppercase tracking-[0.24em] text-plum/70">Subdomains</p>
                 <ul class="mt-4 space-y-2 text-sm text-plum/80">
-                    <li><a href="https://events.thestellarsurge.com">Events</a></li>
-                    <li><a href="https://entrepreneurship.thestellarsurge.com">Entrepreneurship</a></li>
-                    <li><a href="https://training.thestellarsurge.com">Training</a></li>
+                    <li><a href="{{ $eventsPortalUrl }}">Events</a></li>
+                    <li><a href="{{ $entrepreneurshipPortalUrl }}">Entrepreneurship</a></li>
+                    <li><a href="{{ $trainingPortalUrl }}">Training</a></li>
                 </ul>
             </div>
         </div>

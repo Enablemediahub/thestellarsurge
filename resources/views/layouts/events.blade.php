@@ -2,7 +2,9 @@
 
 @section('content')
     @php
-        $eventsHome = request()->getHost() === 'events.thestellarsurge.com' ? route('events.index') : route('events.index.local');
+        $eventsHome = request()->getHost() === 'events.thestellarsurge.com'
+            ? route('events.index')
+            : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.index.path') : route('events.index.local'));
     @endphp
     <div class="min-h-screen bg-[#f7f2e9]">
         <nav class="border-b border-plum/10 bg-plum text-ivory">

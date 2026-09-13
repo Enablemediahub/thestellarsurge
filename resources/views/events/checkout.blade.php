@@ -2,7 +2,7 @@
 
 @section('events-content')
     <div class="section-shell py-16">
-        <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.show', ['slug' => $event->slug]) : route('events.show.local', ['slug' => $event->slug]) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to event</a>
+        <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.show', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.show.path', ['slug' => $event->slug]) : route('events.show.local', ['slug' => $event->slug])) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to event</a>
 
         <div class="mt-8 grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
             <div class="rounded-[2rem] border border-[#eadfcf] bg-white p-8 shadow-brand">
@@ -10,7 +10,7 @@
                 <h1 class="mt-4 text-4xl text-plum">{{ $event->title }}</h1>
                 <p class="mt-3 text-charcoal/75">{{ $event->summary }}</p>
 
-                <form method="POST" action="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.purchase', ['slug' => $event->slug]) : route('events.purchase.local', ['slug' => $event->slug]) }}" class="mt-8 space-y-5">
+                <form method="POST" action="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.purchase', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.purchase.path', ['slug' => $event->slug]) : route('events.purchase.local', ['slug' => $event->slug])) }}" class="mt-8 space-y-5">
                     @csrf
 
                     <div>
