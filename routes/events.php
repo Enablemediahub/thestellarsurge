@@ -1,0 +1,22 @@
+<?php
+
+use App\Http\Controllers\Events\EventController;
+use Illuminate\Support\Facades\Route;
+
+Route::domain('events.thestellarsurge.com')->group(function () {
+    Route::get('/', [EventController::class, 'index'])->name('events.index');
+    Route::get('/{slug}', [EventController::class, 'show'])->name('events.show');
+    Route::get('/{slug}/checkout', [EventController::class, 'checkout'])->name('events.checkout');
+    Route::post('/{slug}/checkout', [EventController::class, 'purchase'])->name('events.purchase');
+    Route::get('/payment/callback', [EventController::class, 'callback'])->name('events.payment.callback');
+    Route::get('/{slug}/success', [EventController::class, 'success'])->name('events.success');
+});
+
+Route::domain('localhost')->group(function () {
+    Route::get('/events', [EventController::class, 'index'])->name('events.index.local');
+    Route::get('/events/{slug}', [EventController::class, 'show'])->name('events.show.local');
+    Route::get('/events/{slug}/checkout', [EventController::class, 'checkout'])->name('events.checkout.local');
+    Route::post('/events/{slug}/checkout', [EventController::class, 'purchase'])->name('events.purchase.local');
+    Route::get('/events/payment/callback', [EventController::class, 'callback'])->name('events.payment.callback.local');
+    Route::get('/events/{slug}/success', [EventController::class, 'success'])->name('events.success.local');
+});
