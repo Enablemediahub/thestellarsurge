@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Main\HomeController;
+use App\Http\Controllers\Main\CommunityController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -8,6 +9,8 @@ Route::domain('localhost')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::view('/about', 'main.about')->name('about');
     Route::view('/contact', 'main.contact')->name('contact');
+    Route::post('/testimonials', [CommunityController::class, 'testimonial'])->name('testimonials.store');
+    Route::post('/subscribe', [CommunityController::class, 'subscribe'])->name('subscribers.store');
     require __DIR__.'/auth.php';
 });
 
@@ -15,7 +18,15 @@ Route::domain('thestellarsurge.com')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::view('/about', 'main.about')->name('about');
     Route::view('/contact', 'main.contact')->name('contact');
+    Route::post('/testimonials', [CommunityController::class, 'testimonial'])->name('testimonials.store.production');
+    Route::post('/subscribe', [CommunityController::class, 'subscribe'])->name('subscribers.store.production');
     require __DIR__.'/auth.php';
+});
+
+Route::domain('localhost')->prefix('thestellarsurge/public')->group(function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home.path');
+    Route::post('/testimonials', [CommunityController::class, 'testimonial'])->name('testimonials.store.path');
+    Route::post('/subscribe', [CommunityController::class, 'subscribe'])->name('subscribers.store.path');
 });
 
 Route::get('/manifest.json', function () {

@@ -6,6 +6,8 @@
         $eventsPortalUrl = $isLocalHost ? route('events.index.path') : route('events.index');
         $entrepreneurshipPortalUrl = $isLocalHost ? route('entrepreneurship.index.path') : route('entrepreneurship.index');
         $trainingPortalUrl = $isLocalHost ? route('training.index.path') : route('training.index');
+        $testimonialRoute = $isLocalHost ? route('testimonials.store.path') : route('testimonials.store.production');
+        $subscriberRoute = $isLocalHost ? route('subscribers.store.path') : route('subscribers.store.production');
     @endphp
     <header class="hero-wallpaper text-ivory">
         @foreach ($siteSettings->heroSlides as $index => $heroSlide)
@@ -42,21 +44,21 @@
             </div>
 
             <div class="mt-14 grid gap-6 md:grid-cols-3">
-                <a href="{{ $eventsPortalUrl }}" class="portal-badge" aria-label="Event & Project Management">
+                <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Events.png') }}" class="portal-badge" aria-label="Event & Project Management">
                     <div class="portal-badge__thumb">
                         <img src="{{ asset('logos/Events.png') }}" alt="Event & Project Management" />
                     </div>
                     <span class="portal-badge__text">Event &amp; Project<br>Management</span>
                 </a>
 
-                <a href="{{ $entrepreneurshipPortalUrl }}" class="portal-badge" aria-label="Entrepreneurial & Empowerment">
+                <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Entrepreneirship.png') }}" class="portal-badge" aria-label="Entrepreneurial & Empowerment">
                     <div class="portal-badge__thumb">
                         <img src="{{ asset('logos/Entrepreneirship.png') }}" alt="Entrepreneurial & Empowerment" />
                     </div>
                     <span class="portal-badge__text">Entrepreneurial &amp;<br>Empowerment</span>
                 </a>
 
-                <a href="{{ $trainingPortalUrl }}" class="portal-badge" aria-label="Skill Training with MasterClasses">
+                <a href="{{ $trainingPortalUrl }}" data-portal-loading data-portal-color="#159d99" data-portal-logo="{{ asset('logos/Training.png') }}" class="portal-badge" aria-label="Skill Training with MasterClasses">
                     <div class="portal-badge__thumb">
                         <img src="{{ asset('logos/Training.png') }}" alt="Skill Training with MasterClasses" />
                     </div>
@@ -83,7 +85,7 @@
                 </div>
 
                 <div class="grid gap-6 md:grid-cols-3">
-                    <a href="{{ $eventsPortalUrl }}" class="portal-card">
+                    <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Events.png') }}" class="portal-card">
                         <div class="portal-color-thumb portal-color-thumb--events mb-6" style="--portal-events-color: {{ $siteSettings->events_color ?: '#E17B7C' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->events_logo_path, asset('logos/Events.png')) }}" alt="" />
                         </div>
@@ -93,7 +95,7 @@
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
 
-                    <a href="{{ $entrepreneurshipPortalUrl }}" class="portal-card">
+                    <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Entrepreneirship.png') }}" class="portal-card">
                         <div class="portal-color-thumb portal-color-thumb--growth mb-6" style="--portal-growth-color: {{ $siteSettings->growth_color ?: '#F9AD2D' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->growth_logo_path, asset('logos/Entrepreneirship.png')) }}" alt="" />
                         </div>
@@ -103,7 +105,7 @@
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
 
-                    <a href="{{ $trainingPortalUrl }}" class="portal-card">
+                    <a href="{{ $trainingPortalUrl }}" data-portal-loading data-portal-color="#159d99" data-portal-logo="{{ asset('logos/Training.png') }}" class="portal-card">
                         <div class="portal-color-thumb portal-color-thumb--learning mb-6" style="--portal-learning-color: {{ $siteSettings->training_color ?: '#159D99' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->training_logo_path, asset('logos/Training.png')) }}" alt="" />
                         </div>
@@ -160,6 +162,32 @@
                     <blockquote class="mx-auto mt-6 max-w-4xl text-3xl leading-relaxed md:text-5xl">“{{ $testimonial->quote }}”</blockquote>
                     <p class="mt-8 text-sm uppercase tracking-[0.28em] text-ivory/70">— {{ $testimonial->author }}{{ $testimonial->role ? ', ' . $testimonial->role : '' }}</p>
                 @endif
+                @if (session('testimonial_status'))
+                    <p class="mx-auto mt-6 max-w-lg rounded-2xl border border-gold/30 bg-white/10 px-4 py-3 text-sm text-gold">{{ session('testimonial_status') }}</p>
+                @endif
+                <form method="POST" action="{{ $testimonialRoute }}" class="mx-auto mt-8 grid max-w-2xl gap-3 text-left md:grid-cols-2">
+                    @csrf
+                    <textarea name="quote" required rows="3" placeholder="Share your Stellar Surge experience" class="rounded-2xl border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold md:col-span-2"></textarea>
+                    <input name="author" required placeholder="Your name" class="rounded-full border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold" />
+                    <input name="role" placeholder="Role or community" class="rounded-full border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold" />
+                    <button type="submit" class="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-plum transition hover:bg-white md:col-span-2">Share testimonial</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="bg-[#efe3d5] py-16">
+            <div class="section-shell mx-auto max-w-3xl text-center">
+                <p class="text-sm uppercase tracking-[0.3em] text-plum/70">Stay in the movement</p>
+                <h2 class="mt-4 text-4xl text-plum md:text-5xl">Get first word on what is next.</h2>
+                @if (session('subscription_status'))
+                    <p class="mx-auto mt-5 max-w-lg rounded-2xl bg-white px-4 py-3 text-sm text-plum shadow-brand">{{ session('subscription_status') }}</p>
+                @endif
+                <form method="POST" action="{{ $subscriberRoute }}" class="mx-auto mt-8 flex max-w-xl flex-col gap-3 sm:flex-row">
+                    @csrf
+                    <input name="name" placeholder="Your name" class="min-w-0 flex-1 rounded-full border border-plum/15 bg-white px-5 py-3 text-sm outline-none focus:border-plum" />
+                    <input name="email" type="email" required placeholder="Email address" class="min-w-0 flex-1 rounded-full border border-plum/15 bg-white px-5 py-3 text-sm outline-none focus:border-plum" />
+                    <button type="submit" class="rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Subscribe</button>
+                </form>
             </div>
         </section>
     </main>

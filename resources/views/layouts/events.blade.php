@@ -2,12 +2,15 @@
 
 @section('content')
     @php
+        $mainSiteUrl = request()->getHost() === 'events.thestellarsurge.com'
+            ? 'https://thestellarsurge.com/'
+            : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? url('/thestellarsurge/public/') : url('/'));
         $eventsHome = request()->getHost() === 'events.thestellarsurge.com'
             ? route('events.index')
             : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.index.path') : route('events.index.local'));
     @endphp
-    <div class="min-h-screen bg-[#f7f2e9]">
-        <nav class="border-b border-plum/10 bg-plum text-ivory">
+    <div class="events-portal min-h-screen bg-[#f7f2e9]">
+        <nav class="border-b border-white/20 bg-[#e27f7f] text-ivory">
             <div class="section-shell flex items-center justify-between gap-6 py-4">
                 <a href="{{ $eventsHome }}" class="flex items-center gap-3">
                     <img src="{{ asset('logos/Main logo.png') }}" alt="Stellar Surge" class="h-10 w-auto brightness-0 invert" />
@@ -17,7 +20,7 @@
                     <a href="{{ $eventsHome }}" class="text-ivory/75 transition hover:text-gold">Programs</a>
                     <a href="{{ $eventsHome }}#about" class="hidden text-ivory/75 transition hover:text-gold sm:inline">About</a>
                     <a href="{{ $eventsHome }}#contact" class="hidden text-ivory/75 transition hover:text-gold sm:inline">Contact</a>
-                    <a href="/" class="rounded-full border border-gold px-3 py-2 text-gold transition hover:bg-gold hover:text-plum">Main site</a>
+                    <a href="{{ $mainSiteUrl }}" class="rounded-full border border-white/60 px-3 py-2 text-white transition hover:bg-white hover:text-[#e27f7f]">Main site</a>
                 </div>
             </div>
         </nav>

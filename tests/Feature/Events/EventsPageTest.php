@@ -4,6 +4,7 @@ namespace Tests\Feature\Events;
 
 use App\Models\Event;
 use App\Models\Testimonial;
+use App\Models\Subscriber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -98,5 +99,35 @@ class EventsPageTest extends TestCase
         $response->assertOk();
         $response->assertSee('Stellar Surge made the experience unforgettable.');
         $response->assertDontSee('This should stay private.');
+    }
+
+    public function test_visitors_can_submit_testimonials_and_subscribe(): void
+    {
+        $this->post('/testimonials', [
+            'quote' => 'The experience was beautifully organized.',
+            'author' => 'Ama Mensah',
+            'role' => 'Community builder',
+        ])->assertRedirect();
+
+        $this->post('/subscribe', [
+            'name' => 'Ama Mensah',
+            'email' => 'ama@example.com',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('testimonials', [
+            'author' => 'Ama Mensah',
+            'is_approved' => false,
+        ]);
+        $this->assertDatabaseHas('subscribers', [
+            'email' => 'ama@example.com',
+            'is_subscribed' => true,
+        ]);
+    }
+
+    public function test_local_public_path_portals_are_available(): void
+    {
+        $this->get('/thestellarsurge/public/events')->assertOk();
+        $this->get('/thestellarsurge/public/entrepreneurship')->assertOk();
+        $this->get('/thestellarsurge/public/training')->assertOk();
     }
 }

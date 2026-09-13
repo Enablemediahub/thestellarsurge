@@ -33,6 +33,70 @@ h1, h2, h3, h4, h5, h6 {
     @apply border border-white/30 bg-white/5 backdrop-blur-sm;
 }
 
+.portal-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--portal-loader-color, #e27f7f);
+    animation: portalLoaderIn 0.2s ease both;
+}
+
+.portal-loader[hidden] {
+    display: none;
+}
+
+.portal-loader__ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 6rem;
+    height: 6rem;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.16), 0 20px 45px rgba(36, 33, 36, 0.2);
+    animation: portalLoaderPulse 1s ease-in-out infinite;
+}
+
+.portal-loader__ring img {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+}
+
+.events-portal {
+    --events-coral: #e27f7f;
+}
+
+.events-portal .bg-plum {
+    background-color: var(--events-coral) !important;
+}
+
+.events-portal .text-plum {
+    color: var(--events-coral) !important;
+}
+
+.events-portal .border-plum {
+    border-color: var(--events-coral) !important;
+}
+
+.events-portal .text-gold {
+    color: #8c5a2a !important;
+}
+
+@keyframes portalLoaderIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes portalLoaderPulse {
+    50% { transform: scale(1.08); }
+}
+
 .site-consent-banner,
 .app-install-prompt {
     position: fixed;

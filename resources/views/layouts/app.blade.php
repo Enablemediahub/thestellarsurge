@@ -27,6 +27,13 @@
     <body class="min-h-screen bg-ivory text-charcoal antialiased">
         @yield('content')
 
+        <div data-portal-loader hidden class="portal-loader" aria-live="polite" aria-label="Opening portal">
+            <div class="portal-loader__ring">
+                <img data-portal-loader-logo src="{{ asset('logos/Events.png') }}" alt="" />
+            </div>
+            <p data-portal-loader-label class="mt-5 text-xs font-semibold uppercase tracking-[0.28em] text-white">Opening portal</p>
+        </div>
+
         <a
             href="{{ $whatsappHref }}"
             target="_blank"
