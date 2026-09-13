@@ -130,4 +130,28 @@ class EventsPageTest extends TestCase
         $this->get('/thestellarsurge/public/entrepreneurship')->assertOk();
         $this->get('/thestellarsurge/public/training')->assertOk();
     }
+
+    public function test_featured_event_is_promoted_to_events_billboard(): void
+    {
+        Event::create([
+            'title' => 'Featured Surge Night',
+            'slug' => 'featured-surge-night',
+            'summary' => 'The flagship Stellar Surge experience.',
+            'description' => 'A featured program.',
+            'start_at' => '2026-10-12 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'featured' => true,
+            'price' => 100,
+            'currency' => 'GHS',
+            'banner_image' => 'https://example.com/featured.jpg',
+        ]);
+
+        $response = $this->get('/events');
+
+        $response->assertOk();
+        $response->assertSee('Featured program');
+        $response->assertSee('Featured Surge Night');
+        $response->assertSee('https://example.com/featured.jpg');
+    }
 }

@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Set;
+use Illuminate\Support\Str;
 
 class EventResource extends Resource
 {
@@ -25,10 +27,15 @@ class EventResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('title')
                             ->required()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Set $set, ?string $state): void {
+                                $set('slug', Str::slug($state ?? ''));
+                            })
                             ->maxLength(255),
                         Forms\Components\TextInput::make('slug')
                             ->required()
                             ->unique(ignoreRecord: true)
+                            ->readOnly()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('summary')
                             ->maxLength(255),

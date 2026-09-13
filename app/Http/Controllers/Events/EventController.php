@@ -25,7 +25,9 @@ class EventController extends Controller
             ->orderBy('start_at', 'asc')
             ->get();
 
-        return view('events.index', compact('events'));
+        $featuredEvent = $events->firstWhere('featured', true) ?: $events->first();
+
+        return view('events.index', compact('events', 'featuredEvent'));
     }
 
     public function show(string $slug)
