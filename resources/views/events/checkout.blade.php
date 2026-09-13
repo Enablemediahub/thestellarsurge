@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.events')
 
-@section('content')
+@section('events-content')
     <div class="section-shell py-16">
-        <a href="{{ route('events.show.local', ['slug' => $event->slug]) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to event</a>
+        <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.show', ['slug' => $event->slug]) : route('events.show.local', ['slug' => $event->slug]) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to event</a>
 
         <div class="mt-8 grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
             <div class="rounded-[2rem] border border-[#eadfcf] bg-white p-8 shadow-brand">
@@ -10,12 +10,18 @@
                 <h1 class="mt-4 text-4xl text-plum">{{ $event->title }}</h1>
                 <p class="mt-3 text-charcoal/75">{{ $event->summary }}</p>
 
-                <form method="POST" action="{{ route('events.purchase.local', ['slug' => $event->slug]) }}" class="mt-8 space-y-5">
+                <form method="POST" action="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.purchase', ['slug' => $event->slug]) : route('events.purchase.local', ['slug' => $event->slug]) }}" class="mt-8 space-y-5">
                     @csrf
 
                     <div>
                         <label for="name" class="mb-2 block text-sm font-medium text-plum">Full name</label>
                         <input id="name" name="name" type="text" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none ring-0 transition focus:border-plum" placeholder="Your full name" />
+                    </div>
+
+                    <div>
+                        <label for="quantity" class="mb-2 block text-sm font-medium text-plum">Number of tickets</label>
+                        <input id="quantity" name="quantity" type="number" min="1" max="10" value="1" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum" />
+                        <p class="mt-2 text-xs text-charcoal/60">You can purchase up to 10 tickets in one order.</p>
                     </div>
 
                     <div>
@@ -28,7 +34,7 @@
                         <input id="phone" name="phone" type="tel" class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none ring-0 transition focus:border-plum" placeholder="+233 24 000 0000" />
                     </div>
 
-                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Pay {{ number_format($event->price) }} {{ $event->currency }}</button>
+                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Continue to secure payment</button>
                 </form>
             </div>
 

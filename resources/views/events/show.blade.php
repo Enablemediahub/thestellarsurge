@@ -1,11 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.events')
 
-@section('content')
+@section('events-content')
+    @php
+        $eventImage = $event->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80';
+    @endphp
     <div class="section-shell py-16">
-        <a href="{{ route('events.index.local') }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to events</a>
+        <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.index') : route('events.index.local') }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to events</a>
 
         <div class="mt-8 overflow-hidden rounded-[2rem] border border-[#eadfcf] bg-white shadow-brand">
-            <div class="h-72 bg-cover bg-center" style="background-image: url('{{ $event->banner_image ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80' }}');"></div>
+            <div class="h-72 bg-cover bg-center" style="background-image: url('{{ $eventImage }}');"></div>
             <div class="grid gap-8 p-6 md:grid-cols-[1.5fr_0.8fr] md:p-10">
                 <div>
                     <div class="mb-4 inline-flex rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-plum">{{ $event->start_at->format('d M Y') }}</div>
@@ -30,7 +33,7 @@
                         <li><strong>Venue:</strong> {{ $event->venue ?? 'To be announced' }}</li>
                     </ul>
 
-                    <a href="{{ route('events.checkout.local', ['slug' => $event->slug]) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Reserve ticket</a>
+                    <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.checkout', ['slug' => $event->slug]) : route('events.checkout.local', ['slug' => $event->slug]) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Reserve ticket</a>
                 </aside>
             </div>
         </div>

@@ -56,9 +56,13 @@ class EventResource extends Resource
                                 'USD' => 'USD',
                             ])
                             ->default('GHS'),
-                        Forms\Components\TextInput::make('banner_image')
-                            ->label('Banner image URL')
-                            ->url(),
+                        Forms\Components\FileUpload::make('banner_image')
+                            ->label('Program flyer')
+                            ->image()
+                            ->disk('public')
+                            ->directory('events/flyers')
+                            ->visibility('public')
+                            ->helperText('Upload the flyer shown on the events billboard and cards.'),
                     ])->columns(3),
 
                 Forms\Components\Section::make('Publishing')

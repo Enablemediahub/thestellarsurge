@@ -1,7 +1,20 @@
-@extends('layouts.app')
+@extends('layouts.events')
 
-@section('content')
-    <div class="section-shell py-16">
+@section('events-content')
+    @php
+        $billboardImage = optional($events->first())->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1800&q=80';
+    @endphp
+    <section class="events-billboard relative overflow-hidden bg-plum text-ivory">
+        <div class="absolute inset-0 bg-cover bg-center opacity-35" style="background-image: url('{{ $billboardImage }}');"></div>
+        <div class="relative section-shell py-20 md:py-28">
+            <p class="text-sm uppercase tracking-[0.35em] text-gold">Stellar Surge Events</p>
+            <h1 class="mt-5 max-w-3xl text-5xl leading-none md:text-7xl">Experiences that move people.</h1>
+            <p class="mt-6 max-w-xl text-lg text-ivory/80">Discover the next room, story, and moment being created by Stellar Surge.</p>
+            <a href="#programs" class="mt-8 inline-flex rounded-full bg-gold px-6 py-3 text-sm font-semibold text-plum transition hover:bg-white">Explore programs</a>
+        </div>
+    </section>
+
+    <div id="programs" class="section-shell py-16">
         <div class="mb-10 flex items-end justify-between gap-4">
             <div>
                 <p class="text-sm uppercase tracking-[0.3em] text-plum/70">Stellar Surge</p>
@@ -14,8 +27,11 @@
 
         <div class="grid gap-6 md:grid-cols-3">
             @forelse ($events as $event)
+                @php
+                    $eventImage = $event->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80';
+                @endphp
                 <article class="overflow-hidden rounded-[2rem] border border-[#eadfcf] bg-white shadow-brand">
-                    <div class="h-52 bg-cover bg-center" style="background-image: url('{{ $event->banner_image ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80' }}');"></div>
+                    <div class="h-52 bg-cover bg-center" style="background-image: url('{{ $eventImage }}');"></div>
                     <div class="p-6">
                         <div class="mb-4 inline-flex rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-plum">{{ $event->start_at->format('M d') }}</div>
                         <h2 class="text-2xl text-plum">{{ $event->title }}</h2>

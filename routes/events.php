@@ -10,6 +10,7 @@ Route::domain('events.thestellarsurge.com')->group(function () {
     Route::post('/{slug}/checkout', [EventController::class, 'purchase'])->name('events.purchase');
     Route::get('/payment/callback', [EventController::class, 'callback'])->name('events.payment.callback');
     Route::get('/{slug}/success', [EventController::class, 'success'])->name('events.success');
+    Route::get('/{slug}/tickets/{reference}/pdf', [EventController::class, 'downloadTicket'])->name('events.ticket.pdf');
 });
 
 Route::domain('localhost')->group(function () {
@@ -19,4 +20,5 @@ Route::domain('localhost')->group(function () {
     Route::post('/events/{slug}/checkout', [EventController::class, 'purchase'])->name('events.purchase.local');
     Route::get('/events/payment/callback', [EventController::class, 'callback'])->name('events.payment.callback.local');
     Route::get('/events/{slug}/success', [EventController::class, 'success'])->name('events.success.local');
+    Route::get('/events/{slug}/tickets/{reference}/pdf', [EventController::class, 'downloadTicket'])->name('events.ticket.pdf.local');
 });

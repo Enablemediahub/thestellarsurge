@@ -43,4 +43,17 @@ class Event extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    public function bannerImageUrl(): ?string
+    {
+        if (! $this->banner_image) {
+            return null;
+        }
+
+        if (str_starts_with($this->banner_image, 'http://') || str_starts_with($this->banner_image, 'https://')) {
+            return $this->banner_image;
+        }
+
+        return url('storage/' . ltrim($this->banner_image, '/'));
+    }
 }

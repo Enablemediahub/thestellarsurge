@@ -6,9 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Payment;
 use App\Models\Ticket;
+use App\Mail\TicketIssued;
+use App\Services\TicketDeliveryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Unicodeveloper\Paystack\Facades\Paystack;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EventController extends Controller
 {
@@ -53,49 +59,61 @@ class EventController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email'],
             'phone' => ['nullable', 'string', 'max:50'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:10'],
         ]);
 
-        $ticketReference = 'TCK-' . strtoupper(Str::random(12));
-        $ticket = Ticket::create([
-            'event_id' => $event->id,
-            'user_id' => $request->user()?->id,
-            'reference' => $ticketReference,
-            'email' => $validated['email'],
-            'name' => $validated['name'],
-            'phone' => $validated['phone'] ?? null,
-            'ticket_type' => 'standard',
-            'amount' => $event->price,
-            'currency' => $event->currency,
-            'status' => 'pending',
-        ]);
+        $quantity = (int) $validated['quantity'];
+        $tickets = collect();
+        $ticketReferences = [];
+
+        DB::transaction(function () use (&$tickets, &$ticketReferences, $event, $request, $validated, $quantity): void {
+            for ($index = 0; $index < $quantity; $index++) {
+                $ticketReference = 'TCK-' . strtoupper(Str::random(12));
+                $ticketReferences[] = $ticketReference;
+                $tickets->push(Ticket::create([
+                    'event_id' => $event->id,
+                    'user_id' => $request->user()?->id,
+                    'reference' => $ticketReference,
+                    'email' => $validated['email'],
+                    'name' => $validated['name'],
+                    'phone' => $validated['phone'] ?? null,
+                    'ticket_type' => 'standard',
+                    'amount' => $event->price,
+                    'currency' => $event->currency,
+                    'status' => 'pending',
+                ]));
+            }
+        });
 
         $paymentReference = 'SS-' . strtoupper(Str::random(12));
         $payment = Payment::create([
             'event_id' => $event->id,
-            'ticket_id' => $ticket->id,
+            'ticket_id' => $tickets->first()->id,
             'user_id' => $request->user()?->id,
             'reference' => $paymentReference,
-            'amount' => $event->price,
+            'amount' => $event->price * $quantity,
             'currency' => $event->currency,
             'status' => 'pending',
             'gateway' => 'paystack',
             'metadata' => [
                 'event_slug' => $event->slug,
-                'ticket_reference' => $ticketReference,
+                'ticket_references' => $ticketReferences,
                 'customer_email' => $validated['email'],
+                'quantity' => $quantity,
             ],
         ]);
 
         $data = [
-            'amount' => $event->price * 100,
+            'amount' => $event->price * $quantity * 100,
             'email' => $validated['email'],
             'reference' => $paymentReference,
             'currency' => $event->currency,
-            'callback_url' => route('events.payment.callback.local', absolute: false),
+            'callback_url' => $request->getSchemeAndHttpHost() . ($request->getHost() === 'events.thestellarsurge.com' ? route('events.payment.callback', absolute: false) : route('events.payment.callback.local', absolute: false)),
             'metadata' => [
                 'event_id' => $event->id,
-                'ticket_id' => $ticket->id,
-                'ticket_reference' => $ticketReference,
+                'ticket_ids' => $tickets->pluck('id')->all(),
+                'ticket_references' => $ticketReferences,
+                'quantity' => $quantity,
             ],
         ];
 
@@ -119,10 +137,34 @@ class EventController extends Controller
             'paid_at' => $status === 'success' ? now() : null,
         ]);
 
-        if ($payment->ticket) {
-            $payment->ticket()->update([
+        $ticketIds = data_get($payment->metadata, 'ticket_ids', []);
+        if ($ticketIds) {
+            Ticket::query()->whereIn('id', $ticketIds)->update([
                 'status' => $status === 'success' ? 'paid' : 'failed',
             ]);
+        } elseif ($payment->ticket) {
+            $payment->ticket()->update(['status' => $status === 'success' ? 'paid' : 'failed']);
+        }
+
+        if ($status === 'success') {
+            $tickets = Ticket::query()
+                ->whereIn('id', $ticketIds ?: [$payment->ticket_id])
+                ->with('event')
+                ->get();
+
+            foreach ($tickets as $ticket) {
+                $ticket->update([
+                    'qr_code' => base64_encode(QrCode::format('svg')->size(260)->generate($ticket->reference)),
+                ]);
+            }
+
+            if ($tickets->isNotEmpty()) {
+                Mail::to($tickets->first()->email)->send(new TicketIssued($tickets));
+
+                foreach ($tickets as $ticket) {
+                    app(TicketDeliveryService::class)->sendWhatsApp($ticket);
+                }
+            }
         }
 
         return redirect()->route('events.success.local', ['slug' => $payment->event?->slug ?? 'event', 'reference' => $reference]);
@@ -134,6 +176,19 @@ class EventController extends Controller
         $reference = $request->query('reference');
         $payment = $reference ? Payment::query()->where('reference', $reference)->first() : null;
 
-        return view('events.success', compact('event', 'payment'));
+        $tickets = $payment
+            ? Ticket::query()->whereIn('id', data_get($payment->metadata, 'ticket_ids', [$payment->ticket_id]))->get()
+            : collect();
+
+        return view('events.success', compact('event', 'payment', 'tickets'));
+    }
+
+    public function downloadTicket(string $slug, string $reference)
+    {
+        $event = Event::query()->where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $ticket = Ticket::query()->where('reference', $reference)->where('event_id', $event->id)->where('status', 'paid')->with('event')->firstOrFail();
+
+        return Pdf::loadView('events.ticket-pdf', ['tickets' => collect([$ticket])])
+            ->download('stellar-surge-' . Str::lower($ticket->reference) . '.pdf');
     }
 }
