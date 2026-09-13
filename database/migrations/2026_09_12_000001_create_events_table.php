@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('location');
             $table->string('venue')->nullable();
             $table->unsignedInteger('price')->default(0);
-            $table->string('currency', 10)->default('NGN');
+            $table->string('currency', 10)->default('GHS');
             $table->text('banner_image')->nullable();
             $table->boolean('is_published')->default(false);
             $table->boolean('featured')->default(false);

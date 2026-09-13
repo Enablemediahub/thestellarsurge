@@ -52,11 +52,10 @@ class EventResource extends Resource
                             ->default(0),
                         Forms\Components\Select::make('currency')
                             ->options([
-                                'NGN' => 'NGN',
                                 'GHS' => 'GHS',
                                 'USD' => 'USD',
                             ])
-                            ->default('NGN'),
+                            ->default('GHS'),
                         Forms\Components\TextInput::make('banner_image')
                             ->label('Banner image URL')
                             ->url(),

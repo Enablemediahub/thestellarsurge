@@ -27,6 +27,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('Stellar Surge')
+            ->brandLogo(asset('logos/Main logo.png'))
+            ->brandLogoHeight('4rem')
+            ->favicon(asset('logos/Main logo.png'))
             ->colors([
                 'primary' => Color::Amber,
             ])
