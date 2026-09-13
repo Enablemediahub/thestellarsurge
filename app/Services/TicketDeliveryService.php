@@ -13,7 +13,7 @@ class TicketDeliveryService
         $token = config('services.twilio.token');
         $from = config('services.twilio.whatsapp_from');
 
-        if (! $sid || ! $token || ! $from || ! $ticket->phone) {
+        if (! $sid || ! $token || ! $from || $ticket->status !== 'paid' || ! $ticket->phone || ! $ticket->whatsapp_confirmed) {
             return;
         }
 

@@ -66,6 +66,12 @@ class SiteSettingResource extends Resource
                             ->disk('public')
                             ->directory('branding/portals')
                             ->visibility('public'),
+                        Forms\Components\FileUpload::make('events_hero_image')
+                            ->label('Events hero image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('branding/portals/heroes')
+                            ->visibility('public'),
                         Forms\Components\ColorPicker::make('events_color')
                             ->label('Events color')
                             ->required(),
@@ -75,6 +81,12 @@ class SiteSettingResource extends Resource
                             ->disk('public')
                             ->directory('branding/portals')
                             ->visibility('public'),
+                        Forms\Components\FileUpload::make('growth_hero_image')
+                            ->label('Entrepreneurship hero image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('branding/portals/heroes')
+                            ->visibility('public'),
                         Forms\Components\ColorPicker::make('growth_color')
                             ->label('Entrepreneurship color')
                             ->required(),
@@ -83,6 +95,12 @@ class SiteSettingResource extends Resource
                             ->image()
                             ->disk('public')
                             ->directory('branding/portals')
+                            ->visibility('public'),
+                        Forms\Components\FileUpload::make('training_hero_image')
+                            ->label('Training hero image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('branding/portals/heroes')
                             ->visibility('public'),
                         Forms\Components\ColorPicker::make('training_color')
                             ->label('Training color')
@@ -103,22 +121,30 @@ class SiteSettingResource extends Resource
                         Forms\Components\TextInput::make('whatsapp_number'),
                         Forms\Components\Repeater::make('social_links')
                             ->schema([
-                                Forms\Components\TextInput::make('label')->required(),
+                                Forms\Components\Select::make('platform')
+                                    ->options([
+                                        'instagram' => 'Instagram',
+                                        'facebook' => 'Facebook',
+                                        'linkedin' => 'LinkedIn',
+                                        'youtube' => 'YouTube',
+                                        'tiktok' => 'TikTok',
+                                        'x' => 'X',
+                                        'whatsapp' => 'WhatsApp',
+                                    ])
+                                    ->required()
+                                    ->live(),
                                 Forms\Components\TextInput::make('url')->url()->required(),
-                                Forms\Components\FileUpload::make('logo_path')
-                                    ->label('White vector logo')
-                                    ->acceptedFileTypes(['image/svg+xml', 'image/png', 'image/webp'])
-                                    ->image()
-                                    ->disk('public')
-                                    ->directory('branding/social')
-                                    ->visibility('public'),
                             ])
-                            ->columns(3)
+                            ->columns(2)
                             ->defaultItems(0)
                             ->columnSpanFull(),
                         Forms\Components\Textarea::make('footer_credit')
                             ->rows(2)
                             ->columnSpanFull(),
+                        Forms\Components\Toggle::make('ticket_scanner_enabled')
+                            ->label('Enable ticket scanner portal')
+                            ->helperText('Allows event planners to open the phone camera scanner at /events/tickets/.')
+                            ->default(true),
                     ])->columns(2),
             ]);
     }

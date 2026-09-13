@@ -12,9 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Unicodeveloper\Paystack\Facades\Paystack;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\TicketSecurityService;
 
 class EventController extends Controller
 {
@@ -22,12 +22,13 @@ class EventController extends Controller
     {
         $events = Event::query()
             ->where('is_published', true)
+            ->orderByDesc('featured')
             ->orderBy('start_at', 'asc')
             ->get();
 
         $featuredEvents = $events->where('featured', true)->values();
         $featuredEvent = $featuredEvents->first();
-        $regularEvents = $events;
+        $regularEvents = $events->where('featured', false)->values();
 
         return view('events.index', compact('events', 'featuredEvents', 'featuredEvent', 'regularEvents'));
     }
@@ -52,6 +53,13 @@ class EventController extends Controller
         return view('events.checkout', compact('event'));
     }
 
+    public function ticketScanner()
+    {
+        abort_unless(\App\Models\SiteSetting::current()->ticket_scanner_enabled, 404);
+
+        return view('events.ticket-scanner');
+    }
+
     public function purchase(Request $request, string $slug)
     {
         $event = Event::query()
@@ -62,7 +70,8 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['required', 'string', 'max:50'],
+            'whatsapp_confirmed' => ['accepted'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
             'ticket_type' => ['required', 'string'],
         ]);
@@ -88,7 +97,8 @@ class EventController extends Controller
                     'reference' => $ticketReference,
                     'email' => $validated['email'],
                     'name' => $validated['name'],
-                    'phone' => $validated['phone'] ?? null,
+                    'phone' => $validated['phone'],
+                    'whatsapp_confirmed' => true,
                     'ticket_type' => $ticketOption['slug'],
                     'amount' => $ticketPrice,
                     'currency' => $event->currency,
@@ -106,7 +116,7 @@ class EventController extends Controller
             'amount' => $ticketPrice * $quantity,
             'currency' => $event->currency,
             'status' => 'pending',
-            'gateway' => 'paystack',
+            'gateway' => config('services.paystack.mode') === 'demo' && ! app()->environment('production') ? 'demo' : 'paystack',
             'metadata' => [
                 'event_slug' => $event->slug,
                 'ticket_references' => $ticketReferences,
@@ -133,6 +143,15 @@ class EventController extends Controller
             ],
         ];
 
+        if (config('services.paystack.mode') === 'demo' && ! app()->environment('production')) {
+            $this->settlePayment($payment, 'success', $request);
+
+            return redirect()->route($this->successRouteName($request), [
+                'slug' => $event->slug,
+                'reference' => $paymentReference,
+            ]);
+        }
+
         return Paystack::getAuthorizationUrl($data)->redirectNow();
     }
 
@@ -152,46 +171,9 @@ class EventController extends Controller
         $paymentData = Paystack::getPaymentData();
 
         $status = data_get($paymentData, 'data.status', 'failed');
-        $payment->update([
-            'status' => $status === 'success' ? 'success' : 'failed',
-            'paid_at' => $status === 'success' ? now() : null,
-        ]);
+        $this->settlePayment($payment, $status === 'success' ? 'success' : 'failed', $request);
 
-        $ticketIds = data_get($payment->metadata, 'ticket_ids', []);
-        if ($ticketIds) {
-            Ticket::query()->whereIn('id', $ticketIds)->update([
-                'status' => $status === 'success' ? 'paid' : 'failed',
-            ]);
-        } elseif ($payment->ticket) {
-            $payment->ticket()->update(['status' => $status === 'success' ? 'paid' : 'failed']);
-        }
-
-        if ($status === 'success') {
-            $tickets = Ticket::query()
-                ->whereIn('id', $ticketIds ?: [$payment->ticket_id])
-                ->with('event')
-                ->get();
-
-            foreach ($tickets as $ticket) {
-                $ticket->update([
-                    'qr_code' => base64_encode(QrCode::format('svg')->size(260)->generate($ticket->reference)),
-                ]);
-            }
-
-            if ($tickets->isNotEmpty()) {
-                Mail::to($tickets->first()->email)->send(new TicketIssued($tickets));
-
-                foreach ($tickets as $ticket) {
-                    app(TicketDeliveryService::class)->sendWhatsApp($ticket);
-                }
-            }
-        }
-
-        $successRoute = request()->getHost() === 'events.thestellarsurge.com'
-            ? 'events.success'
-            : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? 'events.success.path' : 'events.success.local');
-
-        return redirect()->route($successRoute, ['slug' => $payment->event?->slug ?? 'event', 'reference' => $reference]);
+        return redirect()->route($this->successRouteName($request), ['slug' => $payment->event?->slug ?? 'event', 'reference' => $reference]);
     }
 
     public function success(string $slug, Request $request)
@@ -211,8 +193,102 @@ class EventController extends Controller
     {
         $event = Event::query()->where('slug', $slug)->where('is_published', true)->firstOrFail();
         $ticket = Ticket::query()->where('reference', $reference)->where('event_id', $event->id)->where('status', 'paid')->with('event')->firstOrFail();
+        $security = app(TicketSecurityService::class);
+        $payload = $security->payloadFor($ticket);
+        $ticket->update([
+            'qr_code' => $security->qrSvgFor($security->verificationUrlFor($payload, request()), 260),
+        ]);
 
         return Pdf::loadView('events.ticket-pdf', ['tickets' => collect([$ticket])])
             ->download('stellar-surge-' . Str::lower($ticket->reference) . '.pdf');
+    }
+
+    public function verifyTicket(Request $request)
+    {
+        $token = (string) $request->query('token');
+        $claims = $token ? app(TicketSecurityService::class)->verify($token) : null;
+        $ticket = null;
+
+        if ($claims && is_numeric($claims['ticket_id'] ?? null)) {
+            $ticket = Ticket::query()->with('event')->find($claims['ticket_id']);
+            if (! $ticket || $ticket->reference !== ($claims['reference'] ?? null) || $ticket->event_id !== ($claims['event_id'] ?? null)) {
+                $ticket = null;
+                $claims = null;
+            }
+        }
+
+        return view('events.verify-ticket', compact('ticket', 'claims', 'token'));
+    }
+
+    public function confirmTicket(Request $request)
+    {
+        $token = (string) $request->input('token');
+        $claims = $token ? app(TicketSecurityService::class)->verify($token) : null;
+        $ticket = $claims && is_numeric($claims['ticket_id'] ?? null)
+            ? Ticket::query()->with('event')->find($claims['ticket_id'])
+            : null;
+
+        if (! $ticket || $ticket->reference !== ($claims['reference'] ?? null) || $ticket->event_id !== ($claims['event_id'] ?? null) || $ticket->status !== 'paid') {
+            return back()->with('verification_error', 'This ticket could not be verified.');
+        }
+
+        if (! $ticket->verified) {
+            $ticket->update(['verified' => true]);
+        }
+
+        return redirect()->route($this->verificationRouteName($request), ['token' => $token]);
+    }
+
+    private function settlePayment(Payment $payment, string $status, Request $request): void
+    {
+        $wasSuccessful = $payment->status === 'success';
+        $payment->update([
+            'status' => $status,
+            'paid_at' => $status === 'success' ? ($payment->paid_at ?: now()) : null,
+        ]);
+
+        $ticketIds = data_get($payment->metadata, 'ticket_ids', []);
+        if ($ticketIds) {
+            Ticket::query()->whereIn('id', $ticketIds)->update(['status' => $status === 'success' ? 'paid' : 'failed']);
+        } elseif ($payment->ticket) {
+            $payment->ticket()->update(['status' => $status === 'success' ? 'paid' : 'failed']);
+        }
+
+        if ($status !== 'success' || $wasSuccessful) {
+            return;
+        }
+
+        $tickets = Ticket::query()
+            ->whereIn('id', $ticketIds ?: [$payment->ticket_id])
+            ->with('event')
+            ->get();
+
+        foreach ($tickets as $ticket) {
+            $security = app(TicketSecurityService::class);
+            $payload = $security->payloadFor($ticket);
+            $ticket->update(['qr_code' => $security->qrSvgFor($security->verificationUrlFor($payload, $request), 260)]);
+        }
+
+        if ($tickets->isNotEmpty()) {
+            Mail::to($tickets->first()->email)->send(new TicketIssued($tickets));
+
+            foreach ($tickets as $ticket) {
+                app(TicketDeliveryService::class)->sendWhatsApp($ticket);
+            }
+        }
+    }
+
+    private function successRouteName(Request $request): string
+    {
+        return $request->getHost() === 'events.thestellarsurge.com'
+            ? 'events.success'
+            : (str_starts_with($request->getRequestUri(), '/thestellarsurge/public') ? 'events.success.path' : 'events.success.local');
+    }
+
+    private function verificationRouteName(Request $request): string
+    {
+        return $request->getHost() === 'events.thestellarsurge.com'
+            ? 'events.ticket.verify'
+            : (str_starts_with($request->getRequestUri(), '/thestellarsurge/public') ? 'events.ticket.verify.path' : 'events.ticket.verify.local');
     }
 }

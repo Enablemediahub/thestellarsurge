@@ -41,4 +41,8 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
     ],
 
+    'paystack' => [
+        'mode' => env('PAYMENT_MODE', 'live'),
+    ],
+
 ];

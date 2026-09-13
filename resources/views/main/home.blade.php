@@ -133,7 +133,7 @@
                         <article class="overflow-hidden rounded-3xl border border-[#e7d9c7] bg-white shadow-brand">
                             <div class="h-64 overflow-hidden bg-[#f3ece1]">
                                 <img
-                                    src="{{ $event->banner_image ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80' }}"
+                                    src="{{ $event->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80' }}"
                                     alt="{{ $event->title }} flyer"
                                     class="h-full w-full object-cover transition duration-500 hover:scale-105"
                                 >
@@ -205,9 +205,33 @@
                     @foreach ($siteSettings->social_links ?: [] as $socialLink)
                         <li>
                             <a href="{{ $socialLink['url'] ?? '#' }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 transition hover:text-plum">
-                                @if (! empty($socialLink['logo_path']))
-                                    <img src="{{ $siteSettings->mediaUrl($socialLink['logo_path']) }}" alt="" class="h-5 w-5 object-contain" />
-                                @endif
+                                <span class="social-icon social-icon--{{ $socialLink['platform'] ?? 'link' }}" aria-hidden="true">
+                                    @switch($socialLink['platform'] ?? '')
+                                        @case('instagram')
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none"/></svg>
+                                            @break
+                                        @case('facebook')
+                                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3c-3.3 0-5 1.9-5 5v3H6v4h3v4h4v-4h3.2l.8-4H13V9c0-.7.3-1 1-1Z"/></svg>
+                                            @break
+                                        @case('linkedin')
+                                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8H2V21H5V8ZM3.5 3A1.8 1.8 0 1 0 3.5 6.6 1.8 1.8 0 0 0 3.5 3ZM22 13.6c0-3.9-2.1-5.7-4.9-5.7-2.3 0-3.3 1.3-3.9 2.2V8H10V21h3.2v-6.4c0-1.7.3-3.4 2.5-3.4 2.2 0 2.2 2 2.2 3.5V21H22v-7.4Z"/></svg>
+                                            @break
+                                        @case('youtube')
+                                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.3-.4-4.8a2.5 2.5 0 0 0-1.8-1.8C19.3 5 12 5 12 5s-7.3 0-8.8.4a2.5 2.5 0 0 0-1.8 1.8C1 8.7 1 12 1 12s0 3.3.4 4.8a2.5 2.5 0 0 0 1.8 1.8C4.7 19 12 19 12 19s7.3 0 8.8-.4a2.5 2.5 0 0 0 1.8-1.8C23 15.3 23 12 23 12ZM10 15.5v-7l6 3.5-6 3.5Z"/></svg>
+                                            @break
+                                        @case('tiktok')
+                                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 3h3.1c.3 1.7 1.3 3 2.9 3.6V10a8.6 8.6 0 0 1-2.9-1V15a6 6 0 1 1-6-6c.4 0 .8 0 1.2.1v3.5a2.7 2.7 0 1 0 1.7 2.5V3Z"/></svg>
+                                            @break
+                                        @case('x')
+                                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3l-4.9-6.4L6.4 22H3.3l7.2-8.2L2.8 2h6.4l4.4 5.8L18.9 2Zm-1.1 17.5h1.7L8.3 4.4H6.5l11.3 15.1Z"/></svg>
+                                            @break
+                                        @case('whatsapp')
+                                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.1 4.9A9.9 9.9 0 0 0 12.1 2C6.6 2 2.1 6.5 2.1 12c0 1.8.5 3.5 1.3 5L2 22l5.1-1.3a10 10 0 0 0 5 1.3c5.5 0 10-4.5 10-10a9.9 9.9 0 0 0-3-7.1Zm-7 15.4c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12.1 20.3Zm4.5-6.1c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-1.8-.9-3-1.6-4.1-3.6-.2-.3 0-.4.1-.5l.4-.5c.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4l-.7-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 2s.8 2.3.9 2.5c.1.2 1.6 2.5 3.9 3.5 1.5.7 2.1.7 2.9.6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+                                            @break
+                                        @default
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1L11 5"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1-1"/></svg>
+                                    @endswitch
+                                </span>
                                 <span>{{ $socialLink['label'] ?? $socialLink['url'] }}</span>
                             </a>
                         </li>

@@ -2,6 +2,7 @@
 
 @section('events-content')
     @php
+        $siteSettings = \App\Models\SiteSetting::current();
         $eventsHost = request()->getHost();
         $isPathPortal = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
         $mainSiteUrl = $eventsHost === 'events.thestellarsurge.com'
@@ -10,8 +11,9 @@
         $eventShowRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.show' : ($isPathPortal ? 'events.show.path' : 'events.show.local');
         $eventCheckoutRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.checkout' : ($isPathPortal ? 'events.checkout.path' : 'events.checkout.local');
     @endphp
-    <section class="bg-[#e27f7f] py-16 text-ivory md:py-20">
-        <div class="section-shell">
+    @php($heroImage = $siteSettings->mediaUrl($siteSettings->events_hero_image) ?? $featuredEvent?->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1800&q=85')
+    <section class="relative overflow-hidden bg-cover bg-center py-20 text-ivory md:py-28" style="background-image: linear-gradient(color-mix(in srgb, var(--portal-color) 78%, transparent), color-mix(in srgb, var(--portal-color) 58%, transparent)), url('{{ $heroImage }}');">
+        <div class="section-shell relative">
             <p class="text-sm uppercase tracking-[0.35em] text-white/80">Stellar Surge Events</p>
             <h1 class="mt-5 max-w-3xl text-5xl leading-none md:text-7xl">Experiences that move people.</h1>
             <p class="mt-6 max-w-xl text-lg text-white/85">Discover the next room, story, and moment being created by Stellar Surge.</p>
@@ -72,9 +74,9 @@
         <p class="mb-10 max-w-2xl text-lg text-charcoal/80">Curated experiences for creators, communities and growth-minded people.</p>
 
         <div class="grid gap-6 md:grid-cols-3">
-            @if ($regularEvents->isNotEmpty())
-                @foreach ($regularEvents as $event)
-                <article class="overflow-hidden rounded-[2rem] border border-[#eadfcf] bg-white shadow-brand">
+            @if ($events->isNotEmpty())
+                @foreach ($events as $event)
+                <article class="event-thumbnail overflow-hidden rounded-[2rem] border border-[#eadfcf] bg-white shadow-brand">
                     <div class="h-52 overflow-hidden bg-[#eadfcf]">
                         <img src="{{ $event->bannerImageUrl() ?: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ $event->title }} flyer" class="h-full w-full object-cover" />
                     </div>
@@ -88,7 +90,7 @@
                         <div class="mt-5 space-y-2 text-sm text-charcoal/80">
                             <p><strong>Date:</strong> {{ $event->start_at->format('d M Y, h:i A') }}</p>
                             <p><strong>Location:</strong> {{ $event->location }}</p>
-                            <p><strong>Price:</strong> {{ number_format($event->price) }} {{ $event->currency }}</p>
+                            <p><strong>Tickets:</strong> {{ collect($event->ticketOptions())->map(fn (array $ticketOption) => $ticketOption['name'] . ' ' . number_format($ticketOption['price']) . ' ' . $event->currency)->join(', ') }}</p>
                         </div>
                         <div class="mt-6 flex items-center justify-between gap-4">
                             <a href="{{ route($eventShowRoute, ['slug' => $event->slug]) }}" class="inline-flex rounded-full bg-plum px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-charcoal">View details</a>

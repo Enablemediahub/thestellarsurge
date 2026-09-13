@@ -5,7 +5,12 @@ namespace Tests\Feature\Events;
 use App\Models\Event;
 use App\Models\Testimonial;
 use App\Models\Subscriber;
+use App\Models\Payment;
+use App\Models\Ticket;
+use App\Models\SiteSetting;
+use App\Services\TicketSecurityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class EventsPageTest extends TestCase
@@ -155,6 +160,37 @@ class EventsPageTest extends TestCase
         $response->assertSee('https://example.com/featured.jpg');
     }
 
+    public function test_featured_events_are_first_in_the_public_thumbnail_order(): void
+    {
+        Event::create([
+            'title' => 'Regular Later Event',
+            'slug' => 'regular-later-event',
+            'summary' => 'A regular event.',
+            'description' => 'A regular event.',
+            'start_at' => '2026-10-01 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 100,
+            'currency' => 'GHS',
+        ]);
+        Event::create([
+            'title' => 'Featured First Event',
+            'slug' => 'featured-first-event',
+            'summary' => 'A featured event.',
+            'description' => 'A featured event.',
+            'start_at' => '2026-12-01 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'featured' => true,
+            'price' => 100,
+            'currency' => 'GHS',
+        ]);
+
+        $this->get('/events')
+            ->assertOk()
+            ->assertSeeInOrder(['Featured First Event', 'Regular Later Event']);
+    }
+
     public function test_event_ticket_options_and_location_link_render(): void
     {
         Event::create([
@@ -183,5 +219,159 @@ class EventsPageTest extends TestCase
             ->assertOk()
             ->assertSee('VIP')
             ->assertSee('Regular');
+    }
+
+    public function test_checkout_requires_whatsapp_confirmation(): void
+    {
+        Event::create([
+            'title' => 'WhatsApp Confirmation Event',
+            'slug' => 'whatsapp-confirmation-event',
+            'summary' => 'A ticketed event.',
+            'description' => 'A ticketed event.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 250,
+            'currency' => 'GHS',
+        ]);
+
+        $this->from('/events/whatsapp-confirmation-event/checkout')
+            ->post('/events/whatsapp-confirmation-event/checkout', [
+                'name' => 'Ama Mensah',
+                'email' => 'ama@example.com',
+                'phone' => '+233240000000',
+                'quantity' => 1,
+                'ticket_type' => 'standard',
+            ])
+            ->assertRedirect('/events/whatsapp-confirmation-event/checkout')
+            ->assertSessionHasErrors('whatsapp_confirmed');
+
+        $this->assertDatabaseCount('tickets', 0);
+    }
+
+    public function test_demo_payment_issues_tickets_without_calling_paystack(): void
+    {
+        config(['services.paystack.mode' => 'demo']);
+        Mail::fake();
+
+        $event = Event::create([
+            'title' => 'Demo Payment Event',
+            'slug' => 'demo-payment-event',
+            'summary' => 'A demo ticketed event.',
+            'description' => 'A demo ticketed event.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 250,
+            'currency' => 'GHS',
+        ]);
+
+        $response = $this->post('/events/demo-payment-event/checkout', [
+            'name' => 'Ama Mensah',
+            'email' => 'ama@example.com',
+            'phone' => '+233240000000',
+            'whatsapp_confirmed' => 1,
+            'quantity' => 1,
+            'ticket_type' => 'standard',
+        ]);
+
+        $payment = Payment::query()->where('event_id', $event->id)->firstOrFail();
+        $ticket = Ticket::query()->where('event_id', $event->id)->firstOrFail();
+
+        $response->assertRedirect(route('events.success.local', ['slug' => $event->slug, 'reference' => $payment->reference]));
+        $this->assertSame('success', $payment->status);
+        $this->assertSame('paid', $ticket->status);
+        $this->assertNotEmpty($ticket->qr_code);
+        Mail::assertSent(\App\Mail\TicketIssued::class);
+    }
+
+    public function test_paid_ticket_can_be_verified_from_signed_scan_url(): void
+    {
+        $event = Event::create([
+            'title' => 'Verification Event',
+            'slug' => 'verification-event',
+            'summary' => 'Verification event.',
+            'description' => 'Verification event.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 250,
+            'currency' => 'GHS',
+        ]);
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'reference' => 'TCK-VERIFY123',
+            'email' => 'guest@example.com',
+            'name' => 'Guest',
+            'phone' => '+233240000000',
+            'whatsapp_confirmed' => true,
+            'amount' => 250,
+            'currency' => 'GHS',
+            'status' => 'paid',
+        ]);
+        $token = app(TicketSecurityService::class)->payloadFor($ticket);
+
+        $this->get('/events/tickets/verify?token=' . urlencode($token))
+            ->assertOk()
+            ->assertSee('Authentic paid ticket')
+            ->assertSee('Verify ticket for entry');
+
+        $this->post('/events/tickets/verify', ['token' => $token])
+            ->assertRedirect();
+
+        $ticket->refresh();
+        $this->assertTrue($ticket->verified);
+        $this->assertNotNull($ticket->verified_at);
+
+        $this->get('/events/tickets/verify?token=' . urlencode($token))
+            ->assertOk()
+            ->assertSee('Already verified');
+    }
+
+    public function test_unpaid_ticket_cannot_be_verified(): void
+    {
+        $event = Event::create([
+            'title' => 'Unpaid Verification Event',
+            'slug' => 'unpaid-verification-event',
+            'summary' => 'Unpaid event.',
+            'description' => 'Unpaid event.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 250,
+            'currency' => 'GHS',
+        ]);
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'reference' => 'TCK-UNPAID123',
+            'email' => 'guest@example.com',
+            'name' => 'Guest',
+            'phone' => '+233240000000',
+            'whatsapp_confirmed' => true,
+            'amount' => 250,
+            'currency' => 'GHS',
+            'status' => 'pending',
+        ]);
+        $token = app(TicketSecurityService::class)->payloadFor($ticket);
+
+        $this->post('/events/tickets/verify', ['token' => $token])
+            ->assertSessionHas('verification_error');
+
+        $this->assertFalse($ticket->fresh()->verified);
+    }
+
+    public function test_ticket_scanner_portal_can_be_enabled_or_disabled(): void
+    {
+        SiteSetting::create([
+            'site_name' => 'Stellar Surge',
+            'ticket_scanner_enabled' => true,
+        ]);
+
+        $this->get('/events/tickets/')->assertOk()->assertSee('Ticket scanner');
+        $this->get('/ticket-scanner-manifest.json')->assertOk();
+
+        SiteSetting::query()->update(['ticket_scanner_enabled' => false]);
+
+        $this->get('/events/tickets/')->assertNotFound();
     }
 }

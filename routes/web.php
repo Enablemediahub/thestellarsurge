@@ -5,7 +5,7 @@ use App\Http\Controllers\Main\CommunityController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::domain('localhost')->group(function () {
+Route::group([], function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::view('/about', 'main.about')->name('about');
     Route::view('/contact', 'main.contact')->name('contact');
@@ -23,7 +23,7 @@ Route::domain('thestellarsurge.com')->group(function () {
     require __DIR__.'/auth.php';
 });
 
-Route::domain('localhost')->prefix('thestellarsurge/public')->group(function () {
+Route::prefix('thestellarsurge/public')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home.path');
     Route::post('/testimonials', [CommunityController::class, 'testimonial'])->name('testimonials.store.path');
     Route::post('/subscribe', [CommunityController::class, 'subscribe'])->name('subscribers.store.path');
@@ -31,6 +31,10 @@ Route::domain('localhost')->prefix('thestellarsurge/public')->group(function () 
 
 Route::get('/manifest.json', function () {
     return response()->file(public_path('manifest.json'));
+});
+
+Route::get('/ticket-scanner-manifest.json', function () {
+    return response()->file(public_path('ticket-scanner-manifest.json'));
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

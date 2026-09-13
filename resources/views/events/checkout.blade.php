@@ -13,6 +13,11 @@
                 <p class="text-sm uppercase tracking-[0.28em] text-plum/70">Checkout</p>
                 <h1 class="mt-4 text-4xl text-plum">{{ $event->title }}</h1>
                 <p class="mt-3 text-charcoal/75">{{ $event->summary }}</p>
+                @if (config('services.paystack.mode') === 'demo')
+                    <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                        Demo payment mode is active. No real money will be charged.
+                    </div>
+                @endif
                 <div class="share-tools mt-5">
                     <span class="text-xs font-semibold uppercase tracking-[0.2em] text-plum/60">Share checkout</span>
                     <button type="button" data-share-url="{{ request()->fullUrl() }}" data-share-title="Buy tickets for {{ $event->title }}" class="rounded-full border border-[#e27f7f] px-4 py-2 text-xs font-semibold text-[#e27f7f] transition hover:bg-[#e27f7f] hover:text-white">Share / copy payment link</button>
@@ -48,7 +53,11 @@
 
                     <div>
                         <label for="phone" class="mb-2 block text-sm font-medium text-plum">Phone number</label>
-                        <input id="phone" name="phone" type="tel" class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none ring-0 transition focus:border-plum" placeholder="+233 24 000 0000" />
+                        <input id="phone" name="phone" type="tel" required value="{{ old('phone') }}" class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none ring-0 transition focus:border-plum" placeholder="+233 24 000 0000" />
+                        <label class="mt-3 flex items-start gap-3 text-sm text-charcoal/75">
+                            <input name="whatsapp_confirmed" type="checkbox" value="1" required class="mt-1 h-4 w-4 rounded border-[#dccbb1] text-plum focus:ring-plum" {{ old('whatsapp_confirmed') ? 'checked' : '' }} />
+                            <span>I confirm this phone number is also my WhatsApp number and can receive ticket messages.</span>
+                        </label>
                     </div>
 
                     <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Continue to secure payment</button>

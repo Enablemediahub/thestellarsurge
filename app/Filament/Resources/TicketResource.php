@@ -21,6 +21,8 @@ class TicketResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('reference')->disabled(),
+            Forms\Components\Toggle::make('whatsapp_confirmed')->label('WhatsApp number confirmed'),
+            Forms\Components\Toggle::make('verified')->label('Verified for entry'),
             Forms\Components\Select::make('status')->options([
                 'pending' => 'Pending',
                 'paid' => 'Paid',
@@ -37,12 +39,17 @@ class TicketResource extends Resource
                 Tables\Columns\TextColumn::make('event.title')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\IconColumn::make('whatsapp_confirmed')
+                    ->label('WhatsApp')
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('amount')->money(fn (Ticket $record) => $record->currency),
                 Tables\Columns\BadgeColumn::make('status')->colors([
                     'warning' => 'pending',
                     'success' => 'paid',
                     'danger' => 'failed',
                 ]),
+                Tables\Columns\IconColumn::make('verified')->label('Verified')->boolean(),
+                Tables\Columns\TextColumn::make('verified_at')->dateTime()->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([
@@ -51,9 +58,18 @@ class TicketResource extends Resource
                     'paid' => 'Paid',
                     'failed' => 'Failed',
                 ]),
+                Tables\Filters\TernaryFilter::make('whatsapp_confirmed')->label('WhatsApp confirmed'),
+                Tables\Filters\TernaryFilter::make('verified')->label('Verified'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkAction::make('sendWhatsApp')
+                    ->label('Send WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->requiresConfirmation()
+                    ->action(fn ($records) => $records->each(fn (Ticket $ticket) => app(\App\Services\TicketDeliveryService::class)->sendWhatsApp($ticket))),
             ]);
     }
 

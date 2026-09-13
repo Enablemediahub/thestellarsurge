@@ -10,7 +10,7 @@
             ? route('events.index')
             : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.index.path') : route('events.index.local'));
     @endphp
-    <div class="events-portal min-h-screen bg-[#f7f2e9]">
+    <div class="events-portal min-h-screen bg-[#f7f2e9]" style="--portal-color: {{ $siteSettings->events_color ?: '#e27f7f' }};">
         <nav class="border-b border-white/20 bg-[#e27f7f] text-ivory">
             <div class="section-shell flex items-center justify-between gap-6 py-4">
                 <a href="{{ $eventsHome }}" class="flex items-center gap-3">
@@ -31,7 +31,10 @@
         <footer id="contact" class="border-t border-plum/10 bg-[#efe3d5] py-8">
             <div class="section-shell flex flex-col justify-between gap-3 text-sm text-plum/70 md:flex-row md:items-center">
                 <p>Stellar Surge Events. Create. Experience. Impact.</p>
-                <a href="mailto:{{ $siteSettings->contact_email ?: 'hello@thestellarsurge.com' }}" class="font-semibold text-plum">{{ $siteSettings->contact_email ?: 'hello@thestellarsurge.com' }}</a>
+                <div class="flex flex-col gap-2 text-right">
+                    <a href="mailto:{{ $siteSettings->contact_email ?: 'hello@thestellarsurge.com' }}" class="font-semibold text-plum">{{ $siteSettings->contact_email ?: 'hello@thestellarsurge.com' }}</a>
+                    <p class="text-xs uppercase tracking-[0.2em] text-plum/60">{{ $siteSettings->footer_credit ?: 'Developed and Designed by DALE QUIST [Enable Technologies]' }}</p>
+                </div>
             </div>
         </footer>
     </div>

@@ -17,16 +17,31 @@ class Ticket extends Model
         'email',
         'name',
         'phone',
+        'whatsapp_confirmed',
         'ticket_type',
         'amount',
         'currency',
         'status',
+        'verified',
+        'verified_at',
         'qr_code',
     ];
 
     protected $casts = [
         'amount' => 'integer',
+        'whatsapp_confirmed' => 'boolean',
+        'verified' => 'boolean',
+        'verified_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Ticket $ticket): void {
+            if ($ticket->isDirty('verified')) {
+                $ticket->verified_at = $ticket->verified ? now() : null;
+            }
+        });
+    }
 
     public function event(): BelongsTo
     {

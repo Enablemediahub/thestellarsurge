@@ -81,14 +81,25 @@ const featuredDots = [...document.querySelectorAll('[data-featured-dot]')];
 let featuredIndex = 0;
 
 if (featuredLayer && featuredSlides.length) {
+    document.body.classList.add('featured-modal-open');
+
+    const closeFeatured = () => {
+        featuredLayer.hidden = true;
+        document.body.classList.remove('featured-modal-open');
+    };
+
     const showFeatured = (index) => {
         featuredIndex = (index + featuredSlides.length) % featuredSlides.length;
         featuredSlides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === featuredIndex));
         featuredDots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === featuredIndex));
     };
 
-    document.querySelector('[data-featured-close]')?.addEventListener('click', () => {
-        featuredLayer.hidden = true;
+    document.querySelector('[data-featured-close]')?.addEventListener('click', closeFeatured);
+    featuredLayer.addEventListener('click', (event) => {
+        if (event.target === featuredLayer) closeFeatured();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !featuredLayer.hidden) closeFeatured();
     });
     document.querySelector('[data-featured-prev]')?.addEventListener('click', () => showFeatured(featuredIndex - 1));
     document.querySelector('[data-featured-next]')?.addEventListener('click', () => showFeatured(featuredIndex + 1));

@@ -12,8 +12,11 @@ class SiteSetting extends Model
         'favicon_path',
         'hero_slides',
         'events_logo_path',
+        'events_hero_image',
         'growth_logo_path',
+        'growth_hero_image',
         'training_logo_path',
+        'training_hero_image',
         'events_color',
         'growth_color',
         'training_color',
@@ -24,11 +27,13 @@ class SiteSetting extends Model
         'whatsapp_number',
         'social_links',
         'footer_credit',
+        'ticket_scanner_enabled',
     ];
 
     protected $casts = [
         'hero_slides' => 'array',
         'social_links' => 'array',
+        'ticket_scanner_enabled' => 'boolean',
     ];
 
     public function mediaUrl(?string $path, ?string $fallback = null): ?string
@@ -79,6 +84,7 @@ class SiteSetting extends Model
             'gold_color' => '#C8A46A',
             'ivory_color' => '#F7F2E9',
             'social_links' => [],
+            'ticket_scanner_enabled' => true,
         ]);
     }
 }
