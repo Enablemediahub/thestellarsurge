@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class SiteSetting extends Model
@@ -49,15 +48,19 @@ class SiteSetting extends Model
         return url('storage/' . ltrim($path, '/'));
     }
 
-    protected function heroSlides(): Attribute
+    public function heroSlidesForDisplay(): array
     {
-        return Attribute::make(
-            get: fn (?array $value) => collect($value ?: [
+        $slides = $this->hero_slides ?: [
                 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1600&q=80',
                 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80',
                 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1600&q=80',
-            ])->map(fn (string $path) => $this->mediaUrl($path))->values()->all(),
-        );
+            ];
+
+        return collect($slides)
+            ->map(fn (string $path) => $this->mediaUrl($path))
+            ->filter()
+            ->values()
+            ->all();
     }
 
     public static function current(): self

@@ -10,7 +10,7 @@
         $subscriberRoute = $isLocalHost ? route('subscribers.store.path') : route('subscribers.store.production');
     @endphp
     <header class="hero-wallpaper text-ivory">
-        @foreach ($siteSettings->heroSlides as $index => $heroSlide)
+        @foreach ($siteSettings->heroSlidesForDisplay() as $index => $heroSlide)
             <div class="hero-slide hero-slide--{{ $index + 1 }}" style="background-image: url('{{ $heroSlide }}');"></div>
         @endforeach
         <div class="hero-overlay"></div>
