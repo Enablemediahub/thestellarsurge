@@ -62,13 +62,21 @@ class EventController extends Controller
             'email' => ['required', 'email'],
             'phone' => ['nullable', 'string', 'max:50'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
+            'ticket_type' => ['required', 'string'],
         ]);
 
         $quantity = (int) $validated['quantity'];
+        $ticketOption = collect($event->ticketOptions())->firstWhere('slug', $validated['ticket_type']);
+
+        if (! $ticketOption) {
+            return back()->withErrors(['ticket_type' => 'Please select a valid ticket category.'])->withInput();
+        }
+
+        $ticketPrice = (int) $ticketOption['price'];
         $tickets = collect();
         $ticketReferences = [];
 
-        DB::transaction(function () use (&$tickets, &$ticketReferences, $event, $request, $validated, $quantity): void {
+        DB::transaction(function () use (&$tickets, &$ticketReferences, $event, $request, $validated, $quantity, $ticketOption, $ticketPrice): void {
             for ($index = 0; $index < $quantity; $index++) {
                 $ticketReference = 'TCK-' . strtoupper(Str::random(12));
                 $ticketReferences[] = $ticketReference;
@@ -79,8 +87,8 @@ class EventController extends Controller
                     'email' => $validated['email'],
                     'name' => $validated['name'],
                     'phone' => $validated['phone'] ?? null,
-                    'ticket_type' => 'standard',
-                    'amount' => $event->price,
+                    'ticket_type' => $ticketOption['slug'],
+                    'amount' => $ticketPrice,
                     'currency' => $event->currency,
                     'status' => 'pending',
                 ]));
@@ -93,7 +101,7 @@ class EventController extends Controller
             'ticket_id' => $tickets->first()->id,
             'user_id' => $request->user()?->id,
             'reference' => $paymentReference,
-            'amount' => $event->price * $quantity,
+            'amount' => $ticketPrice * $quantity,
             'currency' => $event->currency,
             'status' => 'pending',
             'gateway' => 'paystack',
@@ -102,11 +110,13 @@ class EventController extends Controller
                 'ticket_references' => $ticketReferences,
                 'customer_email' => $validated['email'],
                 'quantity' => $quantity,
+                'ticket_type' => $ticketOption['slug'],
+                'ticket_type_name' => $ticketOption['name'],
             ],
         ]);
 
         $data = [
-            'amount' => $event->price * $quantity * 100,
+            'amount' => $ticketPrice * $quantity * 100,
             'email' => $validated['email'],
             'reference' => $paymentReference,
             'currency' => $event->currency,

@@ -49,6 +49,11 @@ class EventResource extends Resource
                             ->required(),
                         Forms\Components\TextInput::make('venue')
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('location_url')
+                            ->label('Google Maps link')
+                            ->url()
+                            ->placeholder('https://maps.google.com/...')
+                            ->columnSpanFull(),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Ticket setup')
@@ -57,6 +62,23 @@ class EventResource extends Resource
                             ->numeric()
                             ->required()
                             ->default(0),
+                        Forms\Components\Repeater::make('ticket_options')
+                            ->label('Ticket categories and prices')
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Category name')
+                                    ->required()
+                                    ->placeholder('VIP, Regular, Student'),
+                                Forms\Components\TextInput::make('price')
+                                    ->label('Price in GHS')
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(0),
+                            ])
+                            ->columns(2)
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->helperText('Leave empty to use the event price as one Standard ticket.'),
                         Forms\Components\Select::make('currency')
                             ->options([
                                 'GHS' => 'GHS',

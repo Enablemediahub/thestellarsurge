@@ -31,6 +31,9 @@
                         <li><strong>End:</strong> {{ $event->end_at ? $event->end_at->format('d M Y, h:i A') : 'TBA' }}</li>
                         <li><strong>Location:</strong> {{ $event->location }}</li>
                         <li><strong>Venue:</strong> {{ $event->venue ?? 'To be announced' }}</li>
+                        @if ($event->location_url)
+                            <li><a href="{{ $event->location_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#e27f7f] underline">Open location in Google Maps</a></li>
+                        @endif
                     </ul>
 
                     <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.checkout', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.checkout.path', ['slug' => $event->slug]) : route('events.checkout.local', ['slug' => $event->slug])) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Reserve ticket</a>

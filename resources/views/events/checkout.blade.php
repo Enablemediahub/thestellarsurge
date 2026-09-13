@@ -19,6 +19,15 @@
                     </div>
 
                     <div>
+                        <label for="ticket_type" class="mb-2 block text-sm font-medium text-plum">Ticket category</label>
+                        <select id="ticket_type" name="ticket_type" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum">
+                            @foreach ($event->ticketOptions() as $ticketOption)
+                                <option value="{{ $ticketOption['slug'] }}" data-price="{{ $ticketOption['price'] }}">{{ $ticketOption['name'] }} — {{ number_format($ticketOption['price']) }} {{ $event->currency }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="quantity" class="mb-2 block text-sm font-medium text-plum">Number of tickets</label>
                         <input id="quantity" name="quantity" type="number" min="1" max="10" value="1" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum" />
                         <p class="mt-2 text-xs text-charcoal/60">You can purchase up to 10 tickets in one order.</p>
@@ -55,10 +64,26 @@
                     </div>
                     <div class="flex items-center justify-between gap-4 border-t border-plum/10 pt-4 text-base font-semibold text-plum">
                         <span>Total</span>
-                        <span>{{ number_format($event->price) }} {{ $event->currency }}</span>
+                        <span data-order-total>{{ number_format($event->ticketOptions()[0]['price']) }} {{ $event->currency }}</span>
                     </div>
                 </div>
             </aside>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            const ticketType = document.querySelector('#ticket_type');
+            const quantity = document.querySelector('#quantity');
+            const orderTotal = document.querySelector('[data-order-total]');
+            const currency = '{{ $event->currency }}';
+            const updateTotal = () => {
+                const price = Number(ticketType?.selectedOptions[0]?.dataset.price || 0);
+                const count = Number(quantity?.value || 1);
+                orderTotal.textContent = `${(price * count).toLocaleString()} ${currency}`;
+            };
+            ticketType?.addEventListener('change', updateTotal);
+            quantity?.addEventListener('input', updateTotal);
+        </script>
+    @endpush
 @endsection

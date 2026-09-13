@@ -154,4 +154,34 @@ class EventsPageTest extends TestCase
         $response->assertSee('Featured Surge Night');
         $response->assertSee('https://example.com/featured.jpg');
     }
+
+    public function test_event_ticket_options_and_location_link_render(): void
+    {
+        Event::create([
+            'title' => 'Ticket Options Showcase',
+            'slug' => 'ticket-options-showcase',
+            'summary' => 'Choose your experience.',
+            'description' => 'A ticketed showcase.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'venue' => 'Stellar Hall',
+            'location_url' => 'https://maps.google.com/?q=Accra',
+            'ticket_options' => [
+                ['name' => 'VIP', 'price' => 500],
+                ['name' => 'Regular', 'price' => 250],
+            ],
+            'is_published' => true,
+            'price' => 250,
+            'currency' => 'GHS',
+        ]);
+
+        $this->get('/events/ticket-options-showcase')
+            ->assertOk()
+            ->assertSee('Open location in Google Maps');
+
+        $this->get('/events/ticket-options-showcase/checkout')
+            ->assertOk()
+            ->assertSee('VIP')
+            ->assertSee('Regular');
+    }
 }

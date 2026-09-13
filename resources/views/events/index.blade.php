@@ -5,6 +5,9 @@
         $billboardImage = $featuredEvent?->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1800&q=80';
         $eventsHost = request()->getHost();
         $isPathPortal = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
+        $mainSiteUrl = $eventsHost === 'events.thestellarsurge.com'
+            ? 'https://thestellarsurge.com/'
+            : ($isPathPortal ? url('/thestellarsurge/public/') : url('/'));
         $eventShowRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.show' : ($isPathPortal ? 'events.show.path' : 'events.show.local');
         $eventCheckoutRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.checkout' : ($isPathPortal ? 'events.checkout.path' : 'events.checkout.local');
     @endphp
