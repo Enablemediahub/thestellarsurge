@@ -1,14 +1,22 @@
 @extends('layouts.events')
 
 @section('events-content')
+    @php($eventImage = $event->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80')
     <div class="section-shell py-16">
         <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.show', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.show.path', ['slug' => $event->slug]) : route('events.show.local', ['slug' => $event->slug])) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to event</a>
 
         <div class="mt-8 grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
             <div class="rounded-[2rem] border border-[#eadfcf] bg-white p-8 shadow-brand">
+                <div class="mb-8 flex min-h-[18rem] items-center justify-center overflow-hidden rounded-2xl bg-[#eadfcf] p-4 md:min-h-[28rem]">
+                    <img src="{{ $eventImage }}" alt="{{ $event->title }} flyer" class="max-h-[32rem] w-full object-contain" />
+                </div>
                 <p class="text-sm uppercase tracking-[0.28em] text-plum/70">Checkout</p>
                 <h1 class="mt-4 text-4xl text-plum">{{ $event->title }}</h1>
                 <p class="mt-3 text-charcoal/75">{{ $event->summary }}</p>
+                <div class="share-tools mt-5">
+                    <span class="text-xs font-semibold uppercase tracking-[0.2em] text-plum/60">Share checkout</span>
+                    <button type="button" data-share-url="{{ request()->fullUrl() }}" data-share-title="Buy tickets for {{ $event->title }}" class="rounded-full border border-[#e27f7f] px-4 py-2 text-xs font-semibold text-[#e27f7f] transition hover:bg-[#e27f7f] hover:text-white">Share / copy payment link</button>
+                </div>
 
                 <form method="POST" action="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.purchase', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.purchase.path', ['slug' => $event->slug]) : route('events.purchase.local', ['slug' => $event->slug])) }}" class="mt-8 space-y-5">
                     @csrf

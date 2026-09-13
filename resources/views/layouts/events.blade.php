@@ -2,6 +2,7 @@
 
 @section('content')
     @php
+    $siteSettings = \App\Models\SiteSetting::current();
         $mainSiteUrl = request()->getHost() === 'events.thestellarsurge.com'
             ? 'https://thestellarsurge.com/'
             : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? url('/thestellarsurge/public/') : url('/'));
@@ -30,7 +31,7 @@
         <footer id="contact" class="border-t border-plum/10 bg-[#efe3d5] py-8">
             <div class="section-shell flex flex-col justify-between gap-3 text-sm text-plum/70 md:flex-row md:items-center">
                 <p>Stellar Surge Events. Create. Experience. Impact.</p>
-                <a href="mailto:hello@thestellarsurge.com" class="font-semibold text-plum">hello@thestellarsurge.com</a>
+                <a href="mailto:{{ $siteSettings->contact_email ?: 'hello@thestellarsurge.com' }}" class="font-semibold text-plum">{{ $siteSettings->contact_email ?: 'hello@thestellarsurge.com' }}</a>
             </div>
         </footer>
     </div>

@@ -17,6 +17,10 @@
                     <div class="mt-8 prose max-w-none text-charcoal/80">
                         {!! nl2br(e($event->description)) !!}
                     </div>
+                    <div class="share-tools mt-8">
+                        <span class="text-xs font-semibold uppercase tracking-[0.2em] text-plum/60">Share program</span>
+                        <button type="button" data-share-url="{{ request()->fullUrl() }}" data-share-title="{{ $event->title }}" class="rounded-full border border-[#e27f7f] px-4 py-2 text-xs font-semibold text-[#e27f7f] transition hover:bg-[#e27f7f] hover:text-white">Share / copy link</button>
+                    </div>
                 </div>
 
                 <aside class="rounded-[1.5rem] border border-[#f0e3d0] bg-[#fdfaf5] p-6">

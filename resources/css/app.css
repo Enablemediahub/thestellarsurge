@@ -88,6 +88,119 @@ h1, h2, h3, h4, h5, h6 {
     color: #8c5a2a !important;
 }
 
+.featured-program-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(36, 33, 36, 0.64);
+    backdrop-filter: blur(8px);
+}
+
+.featured-program-layer[hidden] {
+    display: none;
+}
+
+.featured-program-modal {
+    position: relative;
+    width: min(100%, 72rem);
+    overflow: hidden;
+    border-radius: 1.5rem;
+    background: #f7f2e9;
+    box-shadow: 0 30px 90px rgba(36, 33, 36, 0.35);
+}
+
+.featured-program-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background: rgba(50, 21, 47, 0.8);
+    color: white;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.featured-program-slide {
+    display: none;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.featured-program-slide.is-active {
+    display: grid;
+}
+
+.featured-program-image {
+    display: flex;
+    min-height: 28rem;
+    align-items: center;
+    justify-content: center;
+    background: #eadfcf;
+    padding: 1.5rem;
+}
+
+.featured-program-image img {
+    max-height: 34rem;
+    width: 100%;
+    object-fit: contain;
+}
+
+.featured-program-copy {
+    padding: 3rem;
+}
+
+.featured-program-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(50, 21, 47, 0.1);
+    padding: 0.9rem 1.25rem;
+}
+
+.featured-program-controls > button {
+    color: #e27f7f;
+    font-size: 1.25rem;
+}
+
+.featured-program-controls [data-featured-dot] {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: rgba(226, 127, 127, 0.3);
+}
+
+.featured-program-controls [data-featured-dot].is-active {
+    background: #e27f7f;
+}
+
+.share-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .featured-program-slide.is-active {
+        display: block;
+    }
+
+    .featured-program-image {
+        min-height: 15rem;
+        max-height: 22rem;
+    }
+
+    .featured-program-copy {
+        padding: 1.5rem;
+    }
+}
+
 @keyframes portalLoaderIn {
     from { opacity: 0; }
     to { opacity: 1; }

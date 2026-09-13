@@ -74,3 +74,40 @@ installDismiss?.addEventListener('click', () => {
     localStorage.setItem('stellar-surge-install-dismissed', 'true');
     installPrompt.hidden = true;
 });
+
+const featuredLayer = document.querySelector('[data-featured-slider]');
+const featuredSlides = [...document.querySelectorAll('[data-featured-slide]')];
+const featuredDots = [...document.querySelectorAll('[data-featured-dot]')];
+let featuredIndex = 0;
+
+if (featuredLayer && featuredSlides.length) {
+    const showFeatured = (index) => {
+        featuredIndex = (index + featuredSlides.length) % featuredSlides.length;
+        featuredSlides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === featuredIndex));
+        featuredDots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === featuredIndex));
+    };
+
+    document.querySelector('[data-featured-close]')?.addEventListener('click', () => {
+        featuredLayer.hidden = true;
+    });
+    document.querySelector('[data-featured-prev]')?.addEventListener('click', () => showFeatured(featuredIndex - 1));
+    document.querySelector('[data-featured-next]')?.addEventListener('click', () => showFeatured(featuredIndex + 1));
+    featuredDots.forEach((dot, index) => dot.addEventListener('click', () => showFeatured(index)));
+}
+
+document.querySelectorAll('[data-share-url]').forEach((shareButton) => {
+    shareButton.addEventListener('click', async () => {
+        const url = shareButton.dataset.shareUrl;
+        const title = shareButton.dataset.shareTitle || document.title;
+
+        if (navigator.share) {
+            await navigator.share({ title, url });
+            return;
+        }
+
+        await navigator.clipboard.writeText(url);
+        const originalLabel = shareButton.textContent;
+        shareButton.textContent = 'Link copied';
+        setTimeout(() => { shareButton.textContent = originalLabel; }, 1800);
+    });
+});
