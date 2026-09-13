@@ -27,7 +27,7 @@ class EventController extends Controller
 
         $featuredEvents = $events->where('featured', true)->values();
         $featuredEvent = $featuredEvents->first();
-        $regularEvents = $events->where('featured', false)->values();
+        $regularEvents = $events;
 
         return view('events.index', compact('events', 'featuredEvents', 'featuredEvent', 'regularEvents'));
     }

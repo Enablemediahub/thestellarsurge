@@ -6,7 +6,7 @@
         $isPathPortal = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
         $mainSiteUrl = $eventsHost === 'events.thestellarsurge.com'
             ? 'https://thestellarsurge.com/'
-            : ($isPathPortal ? url('/thestellarsurge/public/') : url('/'));
+            : ($isPathPortal ? route('home.path') : route('home'));
         $eventShowRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.show' : ($isPathPortal ? 'events.show.path' : 'events.show.local');
         $eventCheckoutRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.checkout' : ($isPathPortal ? 'events.checkout.path' : 'events.checkout.local');
     @endphp
@@ -80,6 +80,9 @@
                     </div>
                     <div class="p-6">
                         <div class="mb-4 inline-flex rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-plum">{{ $event->start_at->format('M d') }}</div>
+                        @if ($event->featured)
+                            <div class="mb-4 ml-2 inline-flex rounded-full bg-[#e27f7f]/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#d36d6d]">Featured</div>
+                        @endif
                         <h2 class="text-2xl text-plum">{{ $event->title }}</h2>
                         <p class="mt-3 text-sm text-charcoal/75">{{ $event->summary }}</p>
                         <div class="mt-5 space-y-2 text-sm text-charcoal/80">
@@ -96,7 +99,7 @@
                 @endforeach
             @else
                 <div class="rounded-[2rem] border border-dashed border-plum/20 bg-[#f8f0e7] p-8 text-charcoal/70 md:col-span-3">
-                    No additional programs are published yet. Please check back soon.
+                    No programs are published yet. Please check back soon.
                 </div>
             @endif
         </div>

@@ -135,6 +135,29 @@ class EventResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
+                Tables\Actions\BulkAction::make('markFeatured')
+                    ->label('Mark featured')
+                    ->icon('heroicon-o-star')
+                    ->requiresConfirmation()
+                    ->action(fn ($records) => $records->each->update(['featured' => true]))
+                    ->deselectRecordsAfterCompletion(),
+                Tables\Actions\BulkAction::make('removeFeatured')
+                    ->label('Remove featured')
+                    ->icon('heroicon-o-star')
+                    ->requiresConfirmation()
+                    ->action(fn ($records) => $records->each->update(['featured' => false]))
+                    ->deselectRecordsAfterCompletion(),
+                Tables\Actions\BulkAction::make('publish')
+                    ->label('Publish selected')
+                    ->icon('heroicon-o-eye')
+                    ->action(fn ($records) => $records->each->update(['is_published' => true]))
+                    ->deselectRecordsAfterCompletion(),
+                Tables\Actions\BulkAction::make('unpublish')
+                    ->label('Unpublish selected')
+                    ->icon('heroicon-o-eye-slash')
+                    ->requiresConfirmation()
+                    ->action(fn ($records) => $records->each->update(['is_published' => false]))
+                    ->deselectRecordsAfterCompletion(),
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }

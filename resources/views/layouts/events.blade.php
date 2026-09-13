@@ -5,7 +5,7 @@
     $siteSettings = \App\Models\SiteSetting::current();
         $mainSiteUrl = request()->getHost() === 'events.thestellarsurge.com'
             ? 'https://thestellarsurge.com/'
-            : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? url('/thestellarsurge/public/') : url('/'));
+            : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('home.path') : route('home'));
         $eventsHome = request()->getHost() === 'events.thestellarsurge.com'
             ? route('events.index')
             : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.index.path') : route('events.index.local'));
