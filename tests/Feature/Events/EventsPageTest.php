@@ -3,6 +3,7 @@
 namespace Tests\Feature\Events;
 
 use App\Models\Event;
+use App\Models\Testimonial;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -75,5 +76,27 @@ class EventsPageTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('https://example.com/creative-motion-flyer.jpg');
+    }
+
+    public function test_homepage_only_shows_approved_testimonials(): void
+    {
+        Testimonial::create([
+            'quote' => 'This should stay private.',
+            'author' => 'Pending voice',
+            'is_approved' => false,
+        ]);
+
+        Testimonial::create([
+            'quote' => 'Stellar Surge made the experience unforgettable.',
+            'author' => 'A community builder',
+            'role' => 'Creative leader',
+            'is_approved' => true,
+        ]);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('Stellar Surge made the experience unforgettable.');
+        $response->assertDontSee('This should stay private.');
     }
 }

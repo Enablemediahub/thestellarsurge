@@ -43,7 +43,11 @@ class DatabaseSeeder extends Seeder
                 'ivory_color' => '#F7F2E9',
                 'contact_email' => 'hello@thestellarsurge.com',
                 'whatsapp_number' => env('WHATSAPP_NUMBER'),
-                'social_links' => [],
+                'social_links' => [
+                    ['label' => 'Instagram', 'url' => 'https://www.instagram.com/thestellarsurge/', 'logo_path' => null],
+                    ['label' => 'Facebook', 'url' => 'https://web.facebook.com/stellar.surge/', 'logo_path' => null],
+                    ['label' => 'X / Twitter', 'url' => 'https://x.com/TheStellarSurge', 'logo_path' => null],
+                ],
                 'footer_credit' => 'Developed and Designed by DALE QUIST [Enable Technologies]',
             ],
         );

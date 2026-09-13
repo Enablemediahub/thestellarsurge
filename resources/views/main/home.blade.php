@@ -150,8 +150,10 @@
         <section class="bg-plum py-20 text-ivory">
             <div class="section-shell text-center">
                 <p class="text-sm uppercase tracking-[0.35em] text-gold">Testimonial</p>
-                <blockquote class="mx-auto mt-6 max-w-4xl text-3xl leading-relaxed md:text-5xl">“Stellar Surge gave my creative vision a platform and my audience a reason to stay.”</blockquote>
-                <p class="mt-8 text-sm uppercase tracking-[0.28em] text-ivory/70">— A community builder</p>
+                @if ($testimonial)
+                    <blockquote class="mx-auto mt-6 max-w-4xl text-3xl leading-relaxed md:text-5xl">“{{ $testimonial->quote }}”</blockquote>
+                    <p class="mt-8 text-sm uppercase tracking-[0.28em] text-ivory/70">— {{ $testimonial->author }}{{ $testimonial->role ? ', ' . $testimonial->role : '' }}</p>
+                @endif
             </div>
         </section>
     </main>

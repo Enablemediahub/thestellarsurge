@@ -10,6 +10,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -31,6 +32,10 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('logos/Main logo.png'))
             ->brandLogoHeight('4rem')
             ->favicon(asset('logos/Main logo.png'))
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn (): string => view('filament.admin.login-background')->render(),
+            )
             ->colors([
                 'primary' => Color::Amber,
             ])
