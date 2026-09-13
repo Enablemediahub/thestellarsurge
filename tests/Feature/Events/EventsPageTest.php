@@ -8,6 +8,8 @@ use App\Models\Subscriber;
 use App\Models\Payment;
 use App\Models\Ticket;
 use App\Models\SiteSetting;
+use App\Models\EventGalleryItem;
+use App\Models\EventGalleryComment;
 use App\Services\TicketSecurityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -373,5 +375,59 @@ class EventsPageTest extends TestCase
         SiteSetting::query()->update(['ticket_scanner_enabled' => false]);
 
         $this->get('/events/tickets/')->assertNotFound();
+    }
+
+    public function test_event_gallery_supports_categories_likes_and_moderated_comments(): void
+    {
+        $event = Event::create([
+            'title' => 'Gallery Event',
+            'slug' => 'gallery-event',
+            'summary' => 'Gallery event.',
+            'description' => 'Gallery event.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 100,
+            'currency' => 'GHS',
+        ]);
+        $item = EventGalleryItem::create([
+            'event_id' => $event->id,
+            'category' => 'Behind the scenes',
+            'image_path' => 'https://example.com/gallery.jpg',
+            'is_published' => true,
+        ]);
+
+        $this->get('/events/gallery-event/gallery')->assertOk()->assertSee('Behind the scenes');
+        $this->post('/events/gallery-event/gallery/' . $item->id . '/like')->assertRedirect();
+        $this->assertDatabaseHas('event_gallery_items', ['id' => $item->id, 'likes_count' => 1]);
+        $this->post('/events/gallery-event/gallery/' . $item->id . '/comments', [
+            'name' => 'Ama',
+            'body' => 'Beautiful event.',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('event_gallery_comments', ['event_gallery_item_id' => $item->id, 'is_approved' => false]);
+    }
+
+    public function test_event_gallery_index_lists_youtube_gallery_items(): void
+    {
+        $event = Event::create([
+            'title' => 'Video Gallery Event',
+            'slug' => 'video-gallery-event',
+            'summary' => 'Video gallery event.',
+            'description' => 'Video gallery event.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 100,
+            'currency' => 'GHS',
+        ]);
+        EventGalleryItem::create([
+            'event_id' => $event->id,
+            'category' => 'Aftermovie',
+            'youtube_url' => 'https://www.youtube.com/watch?v=abc123xyz00',
+            'is_published' => true,
+        ]);
+
+        $this->get('/events/gallery')->assertOk()->assertSee('Video Gallery Event');
+        $this->get('/events/video-gallery-event/gallery')->assertOk()->assertSee('Watch on YouTube');
     }
 }

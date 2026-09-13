@@ -48,6 +48,11 @@ class Event extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function galleryItems(): HasMany
+    {
+        return $this->hasMany(EventGalleryItem::class)->orderBy('category')->orderBy('sort_order');
+    }
+
     public function bannerImageUrl(): ?string
     {
         if (! $this->banner_image) {

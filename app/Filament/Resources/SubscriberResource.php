@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Mail;
 
 class SubscriberResource extends Resource
 {
@@ -41,6 +42,36 @@ class SubscriberResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkAction::make('sendNewsletter')
+                    ->label('Email selected subscribers')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->form([
+                        Forms\Components\TextInput::make('subject')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('message')
+                            ->required()
+                            ->rows(8),
+                        Forms\Components\FileUpload::make('attachment')
+                            ->label('Attachment')
+                            ->disk('public')
+                            ->directory('newsletters')
+                            ->visibility('private')
+                            ->maxSize(10240),
+                    ])
+                    ->requiresConfirmation()
+                    ->action(function ($records, array $data): void {
+                        foreach ($records->where('is_subscribed', true) as $subscriber) {
+                            Mail::to($subscriber->email)->queue(new \App\Mail\NewsletterCampaign(
+                                $data['subject'],
+                                $data['message'],
+                                $data['attachment'] ?? null,
+                            ));
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
             ]);
     }
 

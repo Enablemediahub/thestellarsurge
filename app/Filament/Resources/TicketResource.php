@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Grouping\Group;
 
 class TicketResource extends Resource
 {
@@ -61,6 +62,10 @@ class TicketResource extends Resource
                 Tables\Filters\TernaryFilter::make('whatsapp_confirmed')->label('WhatsApp confirmed'),
                 Tables\Filters\TernaryFilter::make('verified')->label('Verified'),
             ])
+            ->groups([
+                Group::make('event.title')->label('Event')->collapsible(),
+            ])
+            ->defaultGroup('event.title')
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

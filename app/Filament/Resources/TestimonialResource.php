@@ -58,6 +58,17 @@ class TestimonialResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
+                Tables\Actions\BulkAction::make('approve')
+                    ->label('Approve selected')
+                    ->icon('heroicon-o-check-circle')
+                    ->requiresConfirmation()
+                    ->action(fn ($records) => $records->each->update(['is_approved' => true]))
+                    ->deselectRecordsAfterCompletion(),
+                Tables\Actions\BulkAction::make('unapprove')
+                    ->label('Unapprove selected')
+                    ->icon('heroicon-o-x-circle')
+                    ->action(fn ($records) => $records->each->update(['is_approved' => false]))
+                    ->deselectRecordsAfterCompletion(),
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }

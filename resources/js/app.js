@@ -44,6 +44,29 @@ document.querySelectorAll('[data-portal-loading]').forEach((portalLink) => {
     });
 });
 
+document.querySelectorAll('[data-mobile-drawer-open]').forEach((openButton) => {
+    const drawer = document.getElementById(openButton.dataset.mobileDrawerOpen);
+    const closeDrawer = () => {
+        if (!drawer) return;
+        drawer.hidden = true;
+        document.body.classList.remove('mobile-drawer-open');
+    };
+
+    openButton.addEventListener('click', () => {
+        if (!drawer) return;
+        drawer.hidden = false;
+        document.body.classList.add('mobile-drawer-open');
+    });
+    drawer?.querySelector('[data-mobile-drawer-close]')?.addEventListener('click', closeDrawer);
+    drawer?.addEventListener('click', (event) => {
+        if (event.target === drawer) closeDrawer();
+    });
+    drawer?.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeDrawer));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && drawer && !drawer.hidden) closeDrawer();
+    });
+});
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 }

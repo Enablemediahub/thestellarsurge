@@ -92,9 +92,10 @@ class EventResource extends Resource
                             ->disk('public')
                             ->directory('events/flyers')
                             ->visibility('public')
-                            ->formatStateUsing(function (?string $state): ?string {
-                                return $state && ! filter_var($state, FILTER_VALIDATE_URL) ? $state : null;
+                            ->formatStateUsing(function (?string $state): array {
+                                return $state && ! filter_var($state, FILTER_VALIDATE_URL) ? [$state] : [];
                             })
+                            ->dehydrateStateUsing(fn ($state): ?string => is_array($state) ? (array_values($state)[0] ?? null) : $state)
                             ->dehydrated(fn ($state): bool => filled($state))
                             ->helperText('Upload a new local flyer if needed. Existing remote flyers remain unchanged.'),
                         Forms\Components\Placeholder::make('current_banner_preview')

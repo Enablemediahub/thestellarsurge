@@ -41,6 +41,13 @@ class SiteSettingResource extends Resource
                             ->disk('public')
                             ->directory('branding')
                             ->visibility('public'),
+                        Forms\Components\FileUpload::make('login_wallpaper')
+                            ->label('Admin login wallpaper')
+                            ->image()
+                            ->disk('public')
+                            ->directory('branding/admin')
+                            ->visibility('public')
+                            ->helperText('This image appears behind the admin login with a plum overlay and low opacity.'),
                     ])->columns(3),
 
                 Forms\Components\Section::make('Hero experience')

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Payment;
 use App\Models\Ticket;
+use App\Models\EventGalleryComment;
 use App\Mail\TicketIssued;
 use App\Services\TicketDeliveryService;
 use Illuminate\Http\Request;
@@ -40,7 +41,44 @@ class EventController extends Controller
             ->where('is_published', true)
             ->firstOrFail();
 
+        $event->load(['galleryItems' => fn ($query) => $query->where('is_published', true)->with(['comments' => fn ($comments) => $comments->where('is_approved', true)->latest()])]);
+
         return view('events.show', compact('event'));
+    }
+
+    public function gallery(string $slug)
+    {
+        $event = Event::query()->where('slug', $slug)->where('is_published', true)->with(['galleryItems' => fn ($query) => $query->where('is_published', true)->with(['comments' => fn ($comments) => $comments->where('is_approved', true)->latest()])])->firstOrFail();
+
+        return view('events.gallery', compact('event'));
+    }
+
+    public function galleryIndex()
+    {
+        $events = Event::query()->where('is_published', true)->whereHas('galleryItems', fn ($query) => $query->where('is_published', true))->with(['galleryItems' => fn ($query) => $query->where('is_published', true)])->orderBy('start_at')->get();
+
+        return view('events.gallery-index', compact('events'));
+    }
+
+    public function likeGalleryItem(Request $request, string $slug, int $galleryItem)
+    {
+        abort_unless(! $request->session()->has('gallery-liked-' . $galleryItem), 409, 'Already liked');
+        $event = Event::query()->where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $item = $event->galleryItems()->where('is_published', true)->findOrFail($galleryItem);
+        $item->increment('likes_count');
+        $request->session()->put('gallery-liked-' . $galleryItem, true);
+
+        return back();
+    }
+
+    public function commentGalleryItem(Request $request, string $slug, int $galleryItem)
+    {
+        $validated = $request->validate(['name' => ['required', 'string', 'max:100'], 'email' => ['nullable', 'email', 'max:255'], 'body' => ['required', 'string', 'min:2', 'max:1000']]);
+        $event = Event::query()->where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $item = $event->galleryItems()->where('is_published', true)->findOrFail($galleryItem);
+        EventGalleryComment::create($validated + ['event_gallery_item_id' => $item->id]);
+
+        return back()->with('gallery_status', 'Comment submitted for review.');
     }
 
     public function checkout(string $slug)

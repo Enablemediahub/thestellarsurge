@@ -23,6 +23,7 @@
                         <span class="text-xs font-semibold uppercase tracking-[0.2em] text-plum/60">Share program</span>
                         <button type="button" data-share-url="{{ request()->fullUrl() }}" data-share-title="{{ $event->title }}" class="rounded-full border border-[#e27f7f] px-4 py-2 text-xs font-semibold text-[#e27f7f] transition hover:bg-[#e27f7f] hover:text-white">Share / copy link</button>
                     </div>
+                    <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.gallery', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.gallery.path', ['slug' => $event->slug]) : route('events.gallery.local', ['slug' => $event->slug])) }}" class="mt-5 inline-flex rounded-full border border-plum px-4 py-2 text-sm font-semibold text-plum transition hover:bg-plum hover:text-ivory">View event gallery</a>
                 </div>
 
                 <aside class="rounded-[1.5rem] border border-[#f0e3d0] bg-[#fdfaf5] p-6">

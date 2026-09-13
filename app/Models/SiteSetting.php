@@ -10,6 +10,7 @@ class SiteSetting extends Model
         'site_name',
         'logo_path',
         'favicon_path',
+        'login_wallpaper',
         'hero_slides',
         'events_logo_path',
         'events_hero_image',

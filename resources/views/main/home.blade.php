@@ -2,12 +2,14 @@
 
 @section('content')
     @php
-        $isLocalHost = request()->getHost() === 'localhost';
-        $eventsPortalUrl = $isLocalHost ? route('events.index.path') : route('events.index');
-        $entrepreneurshipPortalUrl = $isLocalHost ? route('entrepreneurship.index.path') : route('entrepreneurship.index');
-        $trainingPortalUrl = $isLocalHost ? route('training.index.path') : route('training.index');
-        $testimonialRoute = $isLocalHost ? route('testimonials.store.path') : route('testimonials.store.production');
-        $subscriberRoute = $isLocalHost ? route('subscribers.store.path') : route('subscribers.store.production');
+        $isPublicPathPortal = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
+        $isLocalHost = request()->getHost() === 'localhost' || $isPublicPathPortal;
+        $publicBaseUrl = request()->getSchemeAndHttpHost() . '/thestellarsurge/public';
+        $eventsPortalUrl = $isLocalHost ? $publicBaseUrl . '/events' : route('events.index');
+        $entrepreneurshipPortalUrl = $isLocalHost ? $publicBaseUrl . '/entrepreneurship' : route('entrepreneurship.index');
+        $trainingPortalUrl = $isLocalHost ? $publicBaseUrl . '/training' : route('training.index');
+        $testimonialRoute = $isLocalHost ? $publicBaseUrl . '/testimonials' : route('testimonials.store.production');
+        $subscriberRoute = $isLocalHost ? $publicBaseUrl . '/subscribe' : route('subscribers.store.production');
     @endphp
     <header class="hero-wallpaper text-ivory">
         @foreach ($siteSettings->heroSlidesForDisplay() as $index => $heroSlide)
@@ -15,7 +17,7 @@
         @endforeach
         <div class="hero-overlay"></div>
 
-        <nav class="section-shell relative z-10 flex items-center justify-between py-6">
+        <nav class="section-shell relative z-30 flex items-center justify-between py-6">
             <div class="flex items-center gap-3">
                         <img src="{{ $siteSettings->mediaUrl($siteSettings->logo_path, asset('logos/Main logo.png')) }}" alt="{{ $siteSettings->site_name }}" class="h-14 w-auto" />
             </div>
@@ -30,6 +32,19 @@
             <div class="hidden md:block">
                 <a href="{{ $eventsPortalUrl }}" class="rounded-full border border-gold px-5 py-2 text-sm font-medium text-gold transition hover:bg-gold hover:text-plum">Enter the Surge</a>
             </div>
+
+            <button type="button" data-mobile-drawer-open="main-mobile-nav" class="flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-ivory md:hidden">Menu <span aria-hidden="true">☰</span></button>
+            <aside id="main-mobile-nav" data-mobile-drawer hidden class="mobile-nav-drawer md:hidden" aria-label="Mobile navigation">
+                <div class="mobile-nav-drawer__panel">
+                    <button type="button" data-mobile-drawer-close class="mobile-nav-drawer__close" aria-label="Close navigation">&times;</button>
+                    <p class="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-gold">Stellar Surge</p>
+                    <a href="#about" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">About</a>
+                    <a href="#portals" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">Portals</a>
+                    <a href="#events" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">Events</a>
+                    <a href="#contact" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">Contact</a>
+                    <a href="{{ $eventsPortalUrl }}" class="mt-2 block rounded-xl bg-gold px-3 py-3 font-semibold text-plum">Enter the Surge</a>
+                </div>
+            </aside>
         </nav>
 
         <div class="section-shell relative z-10 pb-16 pt-10 md:pb-24 md:pt-16">
@@ -165,13 +180,16 @@
                 @if (session('testimonial_status'))
                     <p class="mx-auto mt-6 max-w-lg rounded-2xl border border-gold/30 bg-white/10 px-4 py-3 text-sm text-gold">{{ session('testimonial_status') }}</p>
                 @endif
-                <form method="POST" action="{{ $testimonialRoute }}" class="mx-auto mt-8 grid max-w-2xl gap-3 text-left md:grid-cols-2">
-                    @csrf
-                    <textarea name="quote" required rows="3" placeholder="Share your Stellar Surge experience" class="rounded-2xl border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold md:col-span-2"></textarea>
-                    <input name="author" required placeholder="Your name" class="rounded-full border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold" />
-                    <input name="role" placeholder="Role or community" class="rounded-full border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold" />
-                    <button type="submit" class="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-plum transition hover:bg-white md:col-span-2">Share testimonial</button>
-                </form>
+                <div class="mx-auto mt-8 max-w-2xl" x-data="{ open: {{ $errors->any() ? 'true' : 'false' }} }">
+                    <button type="button" @click="open = !open" class="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-plum transition hover:bg-white" x-text="open ? 'Close testimonial form' : 'Share your testimonial'"></button>
+                    <form x-show="open" x-cloak method="POST" action="{{ $testimonialRoute }}" class="mt-5 grid gap-3 text-left md:grid-cols-2">
+                        @csrf
+                        <textarea name="quote" required rows="3" placeholder="Share your Stellar Surge experience" class="rounded-2xl border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold md:col-span-2">{{ old('quote') }}</textarea>
+                        <input name="author" required value="{{ old('author') }}" placeholder="Your name" class="rounded-full border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold" />
+                        <input name="role" value="{{ old('role') }}" placeholder="Role or community" class="rounded-full border-0 bg-white/10 px-4 py-3 text-sm text-ivory placeholder:text-ivory/60 outline-none ring-1 ring-white/15 focus:ring-gold" />
+                        <button type="submit" class="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-plum transition hover:bg-white md:col-span-2">Submit testimonial</button>
+                    </form>
+                </div>
             </div>
         </section>
 

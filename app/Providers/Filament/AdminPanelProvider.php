@@ -36,6 +36,10 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
                 fn (): string => view('filament.admin.login-background')->render(),
             )
+            ->renderHook(
+                PanelsRenderHook::STYLES_AFTER,
+                fn (): string => view('filament.admin.styles')->render(),
+            )
             ->colors([
                 'primary' => Color::Amber,
             ])

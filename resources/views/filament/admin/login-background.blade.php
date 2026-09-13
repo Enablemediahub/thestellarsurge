@@ -1,3 +1,7 @@
+@php
+    $siteSettings = \App\Models\SiteSetting::current();
+    $loginWallpaper = $siteSettings->mediaUrl($siteSettings->login_wallpaper, 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1800&q=80');
+@endphp
 <style>
     .stellar-login-backdrop {
         position: fixed;
@@ -6,7 +10,7 @@
         pointer-events: none;
         background:
             linear-gradient(rgba(50, 21, 47, 0.68), rgba(50, 21, 47, 0.68)),
-            url("https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1800&q=80") center / cover no-repeat;
+            url("{{ $loginWallpaper }}") center / cover no-repeat;
         opacity: 0.28;
     }
 
