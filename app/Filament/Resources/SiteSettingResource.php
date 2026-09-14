@@ -65,52 +65,64 @@ class SiteSettingResource extends Resource
                     ]),
 
                 Forms\Components\Section::make('Portal identity')
-                    ->description('Choose the small round logo and color for each portal.')
+                    ->description('Set the logo, hero image, and color for Curated Events, Event Planning & Coordination, and Trainings & Masterclasses.')
                     ->schema([
                         Forms\Components\FileUpload::make('events_logo_path')
-                            ->label('Events logo')
+                            ->label('Curated Events logo')
                             ->image()
+                            ->deletable()
+                            ->helperText('Shown on the Curated Events portal card and hero. Remove the current preview to upload a replacement.')
                             ->disk('public')
                             ->directory('branding/portals')
                             ->visibility('public'),
                         Forms\Components\FileUpload::make('events_hero_image')
-                            ->label('Events hero image')
+                            ->label('Curated Events hero image')
                             ->image()
+                            ->deletable()
+                            ->helperText('Shown behind the Curated Events portal hero. Remove the current preview to upload a replacement.')
                             ->disk('public')
                             ->directory('branding/portals/heroes')
                             ->visibility('public'),
                         Forms\Components\ColorPicker::make('events_color')
-                            ->label('Events color')
+                            ->label('Curated Events color')
                             ->required(),
                         Forms\Components\FileUpload::make('growth_logo_path')
-                            ->label('Entrepreneurship logo')
+                            ->label('Event Planning & Coordination logo')
                             ->image()
+                            ->deletable()
+                            ->helperText('Shown on the Event Planning & Coordination portal card and hero. Remove the current preview to upload a replacement.')
                             ->disk('public')
                             ->directory('branding/portals')
                             ->visibility('public'),
                         Forms\Components\FileUpload::make('growth_hero_image')
-                            ->label('Entrepreneurship hero image')
+                            ->label('Event Planning & Coordination hero image')
                             ->image()
+                            ->deletable()
+                            ->helperText('Shown behind the Event Planning & Coordination portal hero. Remove the current preview to upload a replacement.')
                             ->disk('public')
                             ->directory('branding/portals/heroes')
                             ->visibility('public'),
                         Forms\Components\ColorPicker::make('growth_color')
-                            ->label('Entrepreneurship color')
+                            ->label('Event Planning & Coordination color')
                             ->required(),
                         Forms\Components\FileUpload::make('training_logo_path')
-                            ->label('Training logo')
+                            ->label('Trainings & Masterclasses logo')
                             ->image()
+                            ->deletable()
+                            ->helperText('Shown on the Trainings & Masterclasses portal card and hero. Remove the current preview to upload a replacement.')
                             ->disk('public')
                             ->directory('branding/portals')
                             ->visibility('public'),
                         Forms\Components\FileUpload::make('training_hero_image')
-                            ->label('Training hero image')
+                            ->label('Trainings & Masterclasses hero image')
                             ->image()
+                            ->deletable()
+                            ->helperText('Shown behind the Trainings & Masterclasses portal hero. Remove the current preview to upload a replacement.')
                             ->disk('public')
                             ->directory('branding/portals/heroes')
                             ->visibility('public'),
                         Forms\Components\ColorPicker::make('training_color')
-                            ->label('Training color')
+                            ->label('Trainings & Masterclasses color')
                             ->required(),
                     ])->columns(2),
 

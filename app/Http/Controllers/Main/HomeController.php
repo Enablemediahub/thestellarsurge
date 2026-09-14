@@ -19,12 +19,12 @@ class HomeController extends Controller
             ->get();
 
         $siteSettings = SiteSetting::current();
-        $testimonial = Testimonial::query()
+        $testimonials = Testimonial::query()
             ->where('is_approved', true)
             ->orderBy('sort_order')
             ->latest()
-            ->first();
+            ->get();
 
-        return view('main.home', compact('featuredEvents', 'siteSettings', 'testimonial'));
+        return view('main.home', compact('featuredEvents', 'siteSettings', 'testimonials'));
     }
 }

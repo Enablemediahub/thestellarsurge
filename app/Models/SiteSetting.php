@@ -51,7 +51,7 @@ class SiteSetting extends Model
             return asset($path);
         }
 
-        return url('storage/' . ltrim($path, '/'));
+        return request()->getSchemeAndHttpHost() . rtrim(request()->getBaseUrl(), '/') . '/storage/' . ltrim($path, '/');
     }
 
     public function heroSlidesForDisplay(): array
@@ -76,7 +76,7 @@ class SiteSetting extends Model
             'logo_path' => 'logos/Main logo.png',
             'favicon_path' => 'logos/Main logo.png',
             'events_logo_path' => 'logos/Events.png',
-            'growth_logo_path' => 'logos/Entrepreneirship.png',
+            'growth_logo_path' => 'logos/Events.png',
             'training_logo_path' => 'logos/Training.png',
             'events_color' => '#E17B7C',
             'growth_color' => '#F9AD2D',

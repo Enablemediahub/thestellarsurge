@@ -12,6 +12,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
+use App\Filament\Widgets\TicketMetrics;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -37,8 +38,8 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => view('filament.admin.login-background')->render(),
             )
             ->renderHook(
-                PanelsRenderHook::STYLES_AFTER,
-                fn (): string => view('filament.admin.styles')->render(),
+                PanelsRenderHook::BODY_END,
+                fn (): string => '<script>document.addEventListener("livewire:init",function(){var s=document.querySelector("script[data-update-uri]");if(s){s.dataset.updateUri="' . rtrim(request()->getBaseUrl(), '/') . '/livewire/update";}});</script>',
             )
             ->colors([
                 'primary' => Color::Amber,
@@ -52,6 +53,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+                TicketMetrics::class,
             ])
             ->middleware([
                 EncryptCookies::class,

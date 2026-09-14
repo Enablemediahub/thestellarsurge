@@ -6,9 +6,10 @@
     <div class="portal-page min-h-screen" style="--portal-color: {{ $siteSettings->training_color ?: '#159d99' }};">
         <section class="portal-hero" style="background-image: linear-gradient(color-mix(in srgb, var(--portal-color) 78%, transparent), color-mix(in srgb, var(--portal-color) 58%, transparent)), url('{{ $heroImage }}');">
             <div class="section-shell">
-                <p class="text-sm uppercase tracking-[0.3em] text-white/80">Stellar Surge Learning</p>
-                <h1 class="mt-5 text-5xl text-white md:text-7xl">Training</h1>
-                <p class="mt-4 max-w-2xl text-lg text-white/90">Masterclasses and practical learning experiences designed to build lasting skill.</p>
+                <img src="{{ $siteSettings->mediaUrl($siteSettings->training_logo_path, asset('logos/Training.png')) }}" alt="Trainings & Masterclasses" class="mb-6 h-16 w-auto object-contain object-left">
+                <p class="text-sm uppercase tracking-[0.3em] text-white/80">Trainings &amp; Masterclasses</p>
+                <h1 class="mt-5 text-5xl text-white md:text-7xl">Trainings &amp; Masterclasses</h1>
+                <p class="mt-4 max-w-2xl text-lg text-white/90">The Art of Coordination Masterclass, Event Planning Masterclass &amp; Mentorship Program, and The Founders Retreat.</p>
             </div>
         </section>
         <div class="section-shell py-16">

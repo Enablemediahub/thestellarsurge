@@ -33,6 +33,41 @@ body.mobile-drawer-open {
     overflow: hidden;
 }
 
+.testimonial-slide {
+    will-change: transform, opacity;
+}
+
+.testimonial-enter {
+    animation: testimonialIn 500ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.testimonial-leave {
+    animation: testimonialOut 280ms ease both;
+}
+
+.testimonial-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.35);
+    transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.testimonial-dot[aria-current="true"] {
+    transform: scale(1.35);
+    background: #c8a46a;
+}
+
+@keyframes testimonialIn {
+    from { opacity: 0; transform: translateY(1rem) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes testimonialOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-.75rem); }
+}
+
 .mobile-nav-drawer {
     position: fixed;
     inset: 0;

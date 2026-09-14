@@ -25,7 +25,7 @@
             @endif
             <div class="mt-8 flex flex-wrap justify-center gap-4">
                 <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.index') : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.index.path') : route('events.index.local')) }}" class="inline-flex rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">View all events</a>
-                <a href="/" class="inline-flex rounded-full border border-plum px-5 py-3 text-sm font-semibold text-plum transition hover:bg-plum hover:text-ivory">Back home</a>
+                <a href="{{ str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('home.path') : route('home') }}" class="inline-flex rounded-full border border-plum px-5 py-3 text-sm font-semibold text-plum transition hover:bg-plum hover:text-ivory">Back home</a>
             </div>
         </div>
     </div>

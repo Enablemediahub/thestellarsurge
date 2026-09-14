@@ -59,25 +59,25 @@
             </div>
 
             <div class="mt-14 grid gap-6 md:grid-cols-3">
-                <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Events.png') }}" class="portal-badge" aria-label="Event & Project Management">
+                <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Events.png') }}" class="portal-badge" aria-label="Curated Events">
                     <div class="portal-badge__thumb">
-                        <img src="{{ asset('logos/Events.png') }}" alt="Event & Project Management" />
+                        <img src="{{ asset('logos/Events.png') }}" alt="Curated Events" />
                     </div>
-                    <span class="portal-badge__text">Event &amp; Project<br>Management</span>
+                    <span class="portal-badge__text">Curated<br>Events</span>
                 </a>
 
-                <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Entrepreneirship.png') }}" class="portal-badge" aria-label="Entrepreneurial & Empowerment">
+                <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Entrepreneirship.png') }}" class="portal-badge" aria-label="Event Planning & Coordination">
                     <div class="portal-badge__thumb">
-                        <img src="{{ asset('logos/Entrepreneirship.png') }}" alt="Entrepreneurial & Empowerment" />
+                        <img src="{{ asset('logos/Entrepreneirship.png') }}" alt="Event Planning & Coordination" />
                     </div>
-                    <span class="portal-badge__text">Entrepreneurial &amp;<br>Empowerment</span>
+                    <span class="portal-badge__text">Event Planning<br>&amp; Coordination</span>
                 </a>
 
-                <a href="{{ $trainingPortalUrl }}" data-portal-loading data-portal-color="#159d99" data-portal-logo="{{ asset('logos/Training.png') }}" class="portal-badge" aria-label="Skill Training with MasterClasses">
+                <a href="{{ $trainingPortalUrl }}" data-portal-loading data-portal-color="#159d99" data-portal-logo="{{ asset('logos/Training.png') }}" class="portal-badge" aria-label="Trainings & Masterclasses">
                     <div class="portal-badge__thumb">
                         <img src="{{ asset('logos/Training.png') }}" alt="Skill Training with MasterClasses" />
                     </div>
-                    <span class="portal-badge__text">Skill Training<br>with MasterClasses</span>
+                    <span class="portal-badge__text">Trainings &amp;<br>Masterclasses</span>
                 </a>
             </div>
         </div>
@@ -104,9 +104,9 @@
                         <div class="portal-color-thumb portal-color-thumb--events mb-6" style="--portal-events-color: {{ $siteSettings->events_color ?: '#E17B7C' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->events_logo_path, asset('logos/Events.png')) }}" alt="" />
                         </div>
-                        <p class="text-sm uppercase tracking-[0.24em] text-plum/60">Events</p>
-                        <h3 class="mt-4 text-3xl text-plum">Event &amp; Project Management</h3>
-                        <p class="mt-4 text-base text-charcoal/80">Discover experiences, manage tickets, and shape unforgettable creative moments.</p>
+                        <p class="text-sm uppercase tracking-[0.24em] text-plum/60">Experiences</p>
+                        <h3 class="mt-4 text-3xl text-plum">Curated Events</h3>
+                        <p class="mt-4 text-base text-charcoal/80">The Stellar Woman Conference, Becoming Bride, Conversations With Men, Young Christian Entrepreneurship Conference, and Creatives Hangout.</p>
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
 
@@ -114,9 +114,9 @@
                         <div class="portal-color-thumb portal-color-thumb--growth mb-6" style="--portal-growth-color: {{ $siteSettings->growth_color ?: '#F9AD2D' }}" aria-hidden="true">
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->growth_logo_path, asset('logos/Entrepreneirship.png')) }}" alt="" />
                         </div>
-                        <p class="text-sm uppercase tracking-[0.24em] text-plum/60">Growth</p>
-                        <h3 class="mt-4 text-3xl text-plum">Entrepreneurial &amp; Empowerment</h3>
-                        <p class="mt-4 text-base text-charcoal/80">Programs, communities, and support systems that turn ambition into momentum.</p>
+                        <p class="text-sm uppercase tracking-[0.24em] text-plum/60">Services</p>
+                        <h3 class="mt-4 text-3xl text-plum">Event Planning &amp; Coordination</h3>
+                        <p class="mt-4 text-base text-charcoal/80">Book us to plan, coordinate, and bring your event to life with ease.</p>
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
 
@@ -125,8 +125,8 @@
                             <img src="{{ $siteSettings->mediaUrl($siteSettings->training_logo_path, asset('logos/Training.png')) }}" alt="" />
                         </div>
                         <p class="text-sm uppercase tracking-[0.24em] text-plum/60">Learning</p>
-                        <h3 class="mt-4 text-3xl text-plum">Skill Training with Masterclasses</h3>
-                        <p class="mt-4 text-base text-charcoal/80">Build practical expertise through premium training experiences and guided learning.</p>
+                        <h3 class="mt-4 text-3xl text-plum">Trainings &amp; Masterclasses</h3>
+                        <p class="mt-4 text-base text-charcoal/80">The Art of Coordination Masterclass, Event Planning Masterclass &amp; Mentorship Program, and The Founders Retreat.</p>
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
                 </div>
@@ -171,11 +171,24 @@
         </section>
 
         <section class="bg-plum py-20 text-ivory">
-            <div class="section-shell text-center">
+            <div class="section-shell text-center" @if ($testimonials->count() > 1) x-data="{ active: 0, paused: false, timer: null, start() { this.timer = setInterval(() => { if (!this.paused) this.active = (this.active + 1) % {{ $testimonials->count() }} }, 6000) } }" x-init="start()" @mouseenter="paused = true" @mouseleave="paused = false" @endif>
                 <p class="text-sm uppercase tracking-[0.35em] text-gold">Testimonial</p>
-                @if ($testimonial)
-                    <blockquote class="mx-auto mt-6 max-w-4xl text-3xl leading-relaxed md:text-5xl">“{{ $testimonial->quote }}”</blockquote>
-                    <p class="mt-8 text-sm uppercase tracking-[0.28em] text-ivory/70">— {{ $testimonial->author }}{{ $testimonial->role ? ', ' . $testimonial->role : '' }}</p>
+                @if ($testimonials->isNotEmpty())
+                    <div class="relative mx-auto mt-6 min-h-[13rem] max-w-4xl">
+                        @foreach ($testimonials as $index => $testimonial)
+                            <div @if ($testimonials->count() > 1) x-show="active === {{ $index }}" x-cloak x-transition:enter="testimonial-enter" x-transition:leave="testimonial-leave" @endif class="testimonial-slide absolute inset-0 flex flex-col items-center justify-center">
+                                <blockquote class="text-3xl leading-relaxed md:text-5xl">“{{ $testimonial->quote }}”</blockquote>
+                                <p class="mt-8 text-sm uppercase tracking-[0.28em] text-ivory/70">— {{ $testimonial->author }}{{ $testimonial->role ? ', ' . $testimonial->role : '' }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if ($testimonials->count() > 1)
+                        <div class="mt-6 flex justify-center gap-2" aria-label="Testimonial navigation">
+                            @foreach ($testimonials as $index => $testimonial)
+                                <button type="button" @click="active = {{ $index }}" :aria-current="active === {{ $index }} ? 'true' : 'false'" class="testimonial-dot" aria-label="Show testimonial {{ $index + 1 }}"></button>
+                            @endforeach
+                        </div>
+                    @endif
                 @endif
                 @if (session('testimonial_status'))
                     <p class="mx-auto mt-6 max-w-lg rounded-2xl border border-gold/30 bg-white/10 px-4 py-3 text-sm text-gold">{{ session('testimonial_status') }}</p>
@@ -274,7 +287,10 @@
                 <p>© {{ date('Y') }} {{ $siteSettings->site_name }}. All rights reserved.</p>
                 <p class="text-xs uppercase tracking-[0.2em] text-plum/60">{{ $siteSettings->footer_credit ?: 'Developed and Designed by DALE QUIST [Enable Technologies]' }}</p>
             </div>
-            <button data-pwa-install type="button" hidden class="inline-flex rounded-full border border-plum px-4 py-2 font-medium text-plum hover:bg-plum hover:text-ivory">Install app</button>
+            <div class="flex items-center gap-3">
+                <a href="{{ url('/admin/login') }}" target="_blank" rel="noopener noreferrer" class="inline-flex rounded-full border border-plum px-4 py-2 font-medium text-plum transition hover:bg-plum hover:text-ivory">Admin login</a>
+                <button data-pwa-install type="button" hidden class="inline-flex rounded-full border border-plum px-4 py-2 font-medium text-plum hover:bg-plum hover:text-ivory">Install app</button>
+            </div>
         </div>
     </footer>
 @endsection
