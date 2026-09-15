@@ -6,8 +6,10 @@
         $isLocalHost = request()->getHost() === 'localhost' || $isPublicPathPortal;
         $publicBaseUrl = request()->getSchemeAndHttpHost() . '/thestellarsurge/public';
         $eventsPortalUrl = $isLocalHost ? $publicBaseUrl . '/events' : route('events.index');
-        $entrepreneurshipPortalUrl = $isLocalHost ? $publicBaseUrl . '/entrepreneurship' : route('entrepreneurship.index');
+        $entrepreneurshipPortalUrl = $isLocalHost ? $publicBaseUrl . '/event_planning' : route('event_planning.index');
         $trainingPortalUrl = $isLocalHost ? $publicBaseUrl . '/training' : route('training.index');
+        $consultationUrl = $isLocalHost ? $publicBaseUrl . '/consultation' : route('consultation');
+        $blogUrl = $isLocalHost ? $publicBaseUrl . '/blogsurge' : route('blogsurge');
         $testimonialRoute = $isLocalHost ? $publicBaseUrl . '/testimonials' : route('testimonials.store.production');
         $subscriberRoute = $isLocalHost ? $publicBaseUrl . '/subscribe' : route('subscribers.store.production');
     @endphp
@@ -26,6 +28,8 @@
                 <a href="#about" class="text-ivory/80 transition hover:text-gold">About</a>
                 <a href="#portals" class="text-ivory/80 transition hover:text-gold">Portals</a>
                 <a href="#events" class="text-ivory/80 transition hover:text-gold">Events</a>
+                <a href="{{ $consultationUrl }}" class="text-ivory/80 transition hover:text-gold">Consultation</a>
+                <a href="{{ $blogUrl }}" class="text-ivory/80 transition hover:text-gold">BlogSurge</a>
                 <a href="#contact" class="text-ivory/80 transition hover:text-gold">Contact</a>
             </div>
 
@@ -41,6 +45,8 @@
                     <a href="#about" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">About</a>
                     <a href="#portals" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">Portals</a>
                     <a href="#events" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">Events</a>
+                    <a href="{{ $consultationUrl }}" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">Consultation</a>
+                    <a href="{{ $blogUrl }}" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">BlogSurge</a>
                     <a href="#contact" class="block rounded-xl px-3 py-3 text-ivory/85 hover:bg-white/10 hover:text-gold">Contact</a>
                     <a href="{{ $eventsPortalUrl }}" class="mt-2 block rounded-xl bg-gold px-3 py-3 font-semibold text-plum">Enter the Surge</a>
                 </div>
@@ -276,8 +282,10 @@
             <div>
                 <p class="text-sm uppercase tracking-[0.24em] text-plum/70">Subdomains</p>
                 <ul class="mt-4 space-y-2 text-sm text-plum/80">
+                    <li><a href="{{ $consultationUrl }}">Consultation</a></li>
+                    <li><a href="{{ $blogUrl }}">BlogSurge</a></li>
                     <li><a href="{{ $eventsPortalUrl }}">Events</a></li>
-                    <li><a href="{{ $entrepreneurshipPortalUrl }}">Entrepreneurship</a></li>
+                    <li><a href="{{ $entrepreneurshipPortalUrl }}">Event Planning</a></li>
                     <li><a href="{{ $trainingPortalUrl }}">Training</a></li>
                 </ul>
             </div>

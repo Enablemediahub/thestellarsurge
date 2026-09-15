@@ -84,4 +84,9 @@ class Event extends Model
             'price' => (int) $this->price,
         ]];
     }
+
+    public function isFree(): bool
+    {
+        return collect($this->ticketOptions())->every(fn (array $option): bool => (int) $option['price'] === 0);
+    }
 }

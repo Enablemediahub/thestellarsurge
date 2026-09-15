@@ -168,6 +168,38 @@ h1, h2, h3, h4, h5, h6 {
     background-size: cover;
 }
 
+.event-planning-nav {
+    position: relative;
+    z-index: 10;
+}
+
+.event-planning-service-card {
+    min-height: 15rem;
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.event-planning-service-card:hover {
+    transform: translateY(-0.35rem);
+    border-color: #c8a46a;
+    box-shadow: 0 24px 45px rgba(50, 21, 47, 0.16);
+}
+
+.event-planning-service-icon {
+    display: inline-flex;
+    width: 3.25rem;
+    height: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #f9ad2d;
+    color: #32152f;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    box-shadow: 0 8px 18px rgba(249, 173, 45, 0.28);
+}
+
 .event-thumbnail {
     transition: transform 220ms ease, box-shadow 220ms ease;
 }

@@ -33,7 +33,11 @@ class AppServiceProvider extends ServiceProvider
             $forwardedProtocol = request()->header('x-forwarded-proto', request()->getScheme());
 
             if ($forwardedHost) {
-                URL::forceRootUrl($forwardedProtocol . '://' . $forwardedHost);
+                $pathPrefix = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public')
+                    ? '/thestellarsurge/public'
+                    : '';
+
+                URL::forceRootUrl($forwardedProtocol . '://' . $forwardedHost . $pathPrefix);
                 URL::forceScheme($forwardedProtocol);
             }
         }

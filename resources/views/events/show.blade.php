@@ -28,6 +28,9 @@
 
                 <aside class="rounded-[1.5rem] border border-[#f0e3d0] bg-[#fdfaf5] p-6">
                     <p class="text-sm uppercase tracking-[0.25em] text-plum/70">Ticket</p>
+                    @if ($event->isFree())
+                        <div class="mt-4 rounded-xl bg-green-100 px-4 py-3 text-sm font-semibold text-green-800">This program is free. Registration is required.</div>
+                    @endif
                     <div class="mt-4 flex items-baseline gap-3">
                         <span class="text-sm uppercase tracking-[0.2em] text-charcoal/60">Ticket categories</span>
                     </div>
@@ -36,7 +39,7 @@
                         @foreach ($event->ticketOptions() as $ticketOption)
                             <div class="flex items-center justify-between gap-4 rounded-xl border border-[#eadfcf] bg-white px-4 py-3">
                                 <span class="font-semibold text-plum">{{ $ticketOption['name'] }}</span>
-                                <span class="text-sm font-semibold text-charcoal">{{ number_format($ticketOption['price']) }} {{ $event->currency }}</span>
+                                <span class="text-sm font-semibold text-charcoal">{{ $ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -51,7 +54,7 @@
                         @endif
                     </ul>
 
-                    <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.checkout', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.checkout.path', ['slug' => $event->slug]) : route('events.checkout.local', ['slug' => $event->slug])) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Reserve ticket</a>
+                    <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.checkout', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.checkout.path', ['slug' => $event->slug]) : route('events.checkout.local', ['slug' => $event->slug])) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">{{ $event->isFree() ? 'Register for free' : 'Reserve ticket' }}</a>
                 </aside>
             </div>
         </div>

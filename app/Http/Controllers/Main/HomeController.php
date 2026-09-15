@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Main;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\BlogPost;
 use App\Models\SiteSetting;
 use App\Models\Testimonial;
 
@@ -24,7 +25,15 @@ class HomeController extends Controller
             ->orderBy('sort_order')
             ->latest()
             ->get();
+        $blogPosts = BlogPost::query()
+            ->where('is_published', true)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->orderByDesc('is_featured')
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
 
-        return view('main.home', compact('featuredEvents', 'siteSettings', 'testimonials'));
+        return view('main.home', compact('featuredEvents', 'siteSettings', 'testimonials', 'blogPosts'));
     }
 }

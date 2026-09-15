@@ -165,6 +165,15 @@ class EventController extends Controller
             ],
         ]);
 
+        if ($ticketPrice === 0) {
+            $this->settlePayment($payment, 'success', $request);
+
+            return redirect()->route($this->successRouteName($request), [
+                'slug' => $event->slug,
+                'reference' => $paymentReference,
+            ]);
+        }
+
         $data = [
             'amount' => $ticketPrice * $quantity * 100,
             'email' => $validated['email'],

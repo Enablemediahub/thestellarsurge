@@ -41,7 +41,7 @@
                                     <p><strong>Location:</strong> {{ $featured->location }}</p>
                                 </div>
                                 <div class="mt-8 flex flex-wrap gap-3">
-                                    <a href="{{ route($eventCheckoutRoute, ['slug' => $featured->slug]) }}" class="rounded-full bg-[#e27f7f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-plum">Get tickets</a>
+                                    <a href="{{ route($eventCheckoutRoute, ['slug' => $featured->slug]) }}" class="rounded-full bg-[#e27f7f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-plum">{{ $featured->isFree() ? 'Register free' : 'Get tickets' }}</a>
                                     <a href="{{ route($eventShowRoute, ['slug' => $featured->slug]) }}" class="rounded-full border border-[#e27f7f] px-5 py-3 text-sm font-semibold text-[#e27f7f] transition hover:bg-[#e27f7f] hover:text-white">View program</a>
                                 </div>
                             </div>
@@ -86,16 +86,19 @@
                         @if ($event->featured)
                             <div class="mb-4 ml-2 inline-flex rounded-full bg-[#e27f7f]/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#d36d6d]">Featured</div>
                         @endif
+                        @if ($event->isFree())
+                            <div class="mb-4 ml-2 inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-green-800">Free registration</div>
+                        @endif
                         <h2 class="text-2xl text-plum">{{ $event->title }}</h2>
                         <p class="mt-3 text-sm text-charcoal/75">{{ $event->summary }}</p>
                         <div class="mt-5 space-y-2 text-sm text-charcoal/80">
                             <p><strong>Date:</strong> {{ $event->start_at->format('d M Y, h:i A') }}</p>
                             <p><strong>Location:</strong> {{ $event->location }}</p>
-                            <p><strong>Tickets:</strong> {{ collect($event->ticketOptions())->map(fn (array $ticketOption) => $ticketOption['name'] . ' ' . number_format($ticketOption['price']) . ' ' . $event->currency)->join(', ') }}</p>
+                            <p><strong>{{ $event->isFree() ? 'Registration:' : 'Tickets:' }}</strong> {{ $event->isFree() ? 'Free' : collect($event->ticketOptions())->map(fn (array $ticketOption) => $ticketOption['name'] . ' ' . number_format($ticketOption['price']) . ' ' . $event->currency)->join(', ') }}</p>
                         </div>
                         <div class="mt-6 flex items-center justify-between gap-4">
                             <a href="{{ route($eventShowRoute, ['slug' => $event->slug]) }}" class="inline-flex rounded-full bg-plum px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-charcoal">View details</a>
-                            <a href="{{ route($eventCheckoutRoute, ['slug' => $event->slug]) }}" class="text-sm font-semibold text-gold">Get ticket</a>
+                            <a href="{{ route($eventCheckoutRoute, ['slug' => $event->slug]) }}" class="text-sm font-semibold text-gold">{{ $event->isFree() ? 'Register free' : 'Get ticket' }}</a>
                         </div>
                     </div>
                 </article>

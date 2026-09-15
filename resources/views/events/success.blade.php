@@ -4,8 +4,8 @@
     <div class="section-shell flex min-h-[60vh] items-center justify-center py-16">
         <div class="max-w-xl rounded-[2rem] border border-[#eadfcf] bg-white p-10 text-center shadow-brand">
             <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-700">✓</div>
-            <p class="text-sm uppercase tracking-[0.28em] text-plum/70">Payment status</p>
-            <h1 class="mt-4 text-4xl text-plum">Your ticket is confirmed.</h1>
+            <p class="text-sm uppercase tracking-[0.28em] text-plum/70">{{ $payment?->amount === 0 ? 'Registration complete' : 'Payment status' }}</p>
+            <h1 class="mt-4 text-4xl text-plum">{{ $payment?->amount === 0 ? 'Your registration is confirmed.' : 'Your ticket is confirmed.' }}</h1>
             <p class="mt-4 text-charcoal/80">
                 Thanks for securing your spot at {{ $event->title }}.
                 @if ($payment)

@@ -41,6 +41,11 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
     ],
 
+    'lead_notifications' => [
+        'email' => env('LEAD_NOTIFICATION_EMAIL'),
+        'whatsapp' => env('LEAD_NOTIFICATION_WHATSAPP'),
+    ],
+
     'paystack' => [
         'mode' => env('PAYMENT_MODE', 'live'),
     ],

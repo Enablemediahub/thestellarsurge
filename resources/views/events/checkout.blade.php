@@ -10,13 +10,16 @@
                 <div class="mb-8 flex min-h-[18rem] items-center justify-center overflow-hidden rounded-2xl bg-[#eadfcf] p-4 md:min-h-[28rem]">
                     <img src="{{ $eventImage }}" alt="{{ $event->title }} flyer" class="max-h-[32rem] w-full object-contain" />
                 </div>
-                <p class="text-sm uppercase tracking-[0.28em] text-plum/70">Checkout</p>
+                <p class="text-sm uppercase tracking-[0.28em] text-plum/70">{{ $event->isFree() ? 'Free registration' : 'Checkout' }}</p>
                 <h1 class="mt-4 text-4xl text-plum">{{ $event->title }}</h1>
                 <p class="mt-3 text-charcoal/75">{{ $event->summary }}</p>
                 @if (config('services.paystack.mode') === 'demo')
                     <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                         Demo payment mode is active. No real money will be charged.
                     </div>
+                @endif
+                @if ($event->isFree())
+                    <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">There is no payment for this program. Complete the form to register and receive your ticket.</div>
                 @endif
                 <div class="share-tools mt-5">
                     <span class="text-xs font-semibold uppercase tracking-[0.2em] text-plum/60">Share checkout</span>
@@ -35,7 +38,7 @@
                         <label for="ticket_type" class="mb-2 block text-sm font-medium text-plum">Ticket category</label>
                         <select id="ticket_type" name="ticket_type" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum">
                             @foreach ($event->ticketOptions() as $ticketOption)
-                                <option value="{{ $ticketOption['slug'] }}" data-price="{{ $ticketOption['price'] }}">{{ $ticketOption['name'] }} — {{ number_format($ticketOption['price']) }} {{ $event->currency }}</option>
+                                <option value="{{ $ticketOption['slug'] }}" data-price="{{ $ticketOption['price'] }}">{{ $ticketOption['name'] }} — {{ $ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -60,7 +63,7 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">Continue to secure payment</button>
+                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">{{ $event->isFree() ? 'Complete free registration' : 'Continue to secure payment' }}</button>
                 </form>
             </div>
 
@@ -81,7 +84,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-4 border-t border-plum/10 pt-4 text-base font-semibold text-plum">
                         <span>Total</span>
-                        <span data-order-total>{{ number_format($event->ticketOptions()[0]['price']) }} {{ $event->currency }}</span>
+                        <span data-order-total>{{ $event->ticketOptions()[0]['price'] === 0 ? 'Free' : number_format($event->ticketOptions()[0]['price']) . ' ' . $event->currency }}</span>
                     </div>
                 </div>
             </aside>
