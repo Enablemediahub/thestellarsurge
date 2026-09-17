@@ -33,7 +33,8 @@ class AppServiceProvider extends ServiceProvider
             $forwardedProtocol = request()->header('x-forwarded-proto', request()->getScheme());
 
             if ($forwardedHost) {
-                $pathPrefix = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public')
+                $isLaravelDevServer = (string) request()->server('SERVER_PORT') === '8000';
+                $pathPrefix = ! $isLaravelDevServer && str_starts_with(request()->getRequestUri(), '/thestellarsurge/public')
                     ? '/thestellarsurge/public'
                     : '';
 

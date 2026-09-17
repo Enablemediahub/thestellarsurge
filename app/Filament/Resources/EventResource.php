@@ -62,7 +62,7 @@ class EventResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('price')
                             ->numeric()
-                            ->helperText('Optional legacy fallback. Add ticket categories below to define prices.'),
+                            ->helperText('Use 0 for a free registration program. Use a positive amount to require payment. Add ticket categories below to define prices.'),
                         Forms\Components\Repeater::make('ticket_options')
                             ->label('Ticket categories and prices')
                             ->schema([
@@ -79,7 +79,7 @@ class EventResource extends Resource
                             ->columns(2)
                             ->defaultItems(0)
                             ->columnSpanFull()
-                            ->helperText('Leave empty to use the event price as one Standard ticket.'),
+                            ->helperText('Every category must be 0 for free registration. Any positive category price sends the attendee through payment. Leave empty to use the event price as one Standard ticket.'),
                         Forms\Components\Select::make('currency')
                             ->options([
                                 'GHS' => 'GHS',

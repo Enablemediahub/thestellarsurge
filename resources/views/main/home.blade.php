@@ -65,16 +65,16 @@
             </div>
 
             <div class="mt-14 grid gap-6 md:grid-cols-3">
-                <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Events.png') }}" class="portal-badge" aria-label="Curated Events">
+                <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Curated Events.png') }}" class="portal-badge" aria-label="Curated Events">
                     <div class="portal-badge__thumb">
-                        <img src="{{ asset('logos/Events.png') }}" alt="Curated Events" />
+                        <img src="{{ asset('logos/Curated Events.png') }}" alt="Curated Events" />
                     </div>
                     <span class="portal-badge__text">Curated<br>Events</span>
                 </a>
 
-                <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Entrepreneirship.png') }}" class="portal-badge" aria-label="Event Planning & Coordination">
+                <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Event Planning.png') }}" class="portal-badge" aria-label="Event Planning & Coordination">
                     <div class="portal-badge__thumb">
-                        <img src="{{ asset('logos/Entrepreneirship.png') }}" alt="Event Planning & Coordination" />
+                        <img src="{{ asset('logos/Event Planning.png') }}" alt="Event Planning & Coordination" />
                     </div>
                     <span class="portal-badge__text">Event Planning<br>&amp; Coordination</span>
                 </a>
@@ -106,9 +106,9 @@
                 </div>
 
                 <div class="grid gap-6 md:grid-cols-3">
-                    <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Events.png') }}" class="portal-card">
-                        <div class="portal-color-thumb portal-color-thumb--events mb-6" style="--portal-events-color: {{ $siteSettings->events_color ?: '#E17B7C' }}" aria-hidden="true">
-                            <img src="{{ $siteSettings->mediaUrl($siteSettings->events_logo_path, asset('logos/Events.png')) }}" alt="" />
+                    <a href="{{ $eventsPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Curated Events.png') }}" class="portal-card">
+                        <div class="portal-color-thumb portal-color-thumb--events mb-6" style="--portal-events-color: {{ $siteSettings->growth_color ?: '#F9AD2D' }}" aria-hidden="true">
+                            <img src="{{ asset('logos/Curated Events.png') }}" alt="" />
                         </div>
                         <p class="text-sm uppercase tracking-[0.24em] text-plum/60">Experiences</p>
                         <h3 class="mt-4 text-3xl text-plum">Curated Events</h3>
@@ -116,9 +116,9 @@
                         <div class="mt-6 inline-flex items-center gap-2 font-semibold text-plum">Explore <span aria-hidden="true">→</span></div>
                     </a>
 
-                    <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#f9ad2d" data-portal-logo="{{ asset('logos/Entrepreneirship.png') }}" class="portal-card">
-                        <div class="portal-color-thumb portal-color-thumb--growth mb-6" style="--portal-growth-color: {{ $siteSettings->growth_color ?: '#F9AD2D' }}" aria-hidden="true">
-                            <img src="{{ $siteSettings->mediaUrl($siteSettings->growth_logo_path, asset('logos/Entrepreneirship.png')) }}" alt="" />
+                    <a href="{{ $entrepreneurshipPortalUrl }}" data-portal-loading data-portal-color="#e27f7f" data-portal-logo="{{ asset('logos/Event Planning.png') }}" class="portal-card">
+                        <div class="portal-color-thumb portal-color-thumb--growth mb-6" style="--portal-growth-color: {{ $siteSettings->events_color ?: '#E27F7F' }}" aria-hidden="true">
+                            <img src="{{ asset('logos/Event Planning.png') }}" alt="" />
                         </div>
                         <p class="text-sm uppercase tracking-[0.24em] text-plum/60">Services</p>
                         <h3 class="mt-4 text-3xl text-plum">Event Planning &amp; Coordination</h3>
@@ -180,11 +180,11 @@
             <div class="section-shell text-center" @if ($testimonials->count() > 1) x-data="{ active: 0, paused: false, timer: null, start() { this.timer = setInterval(() => { if (!this.paused) this.active = (this.active + 1) % {{ $testimonials->count() }} }, 6000) } }" x-init="start()" @mouseenter="paused = true" @mouseleave="paused = false" @endif>
                 <p class="text-sm uppercase tracking-[0.35em] text-gold">Testimonial</p>
                 @if ($testimonials->isNotEmpty())
-                    <div class="relative mx-auto mt-6 min-h-[13rem] max-w-4xl">
+                    <div class="relative mx-auto mt-6 min-h-[17rem] max-w-4xl sm:min-h-[15rem]">
                         @foreach ($testimonials as $index => $testimonial)
                             <div @if ($testimonials->count() > 1) x-show="active === {{ $index }}" x-cloak x-transition:enter="testimonial-enter" x-transition:leave="testimonial-leave" @endif class="testimonial-slide absolute inset-0 flex flex-col items-center justify-center">
-                                <blockquote class="text-3xl leading-relaxed md:text-5xl">“{{ $testimonial->quote }}”</blockquote>
-                                <p class="mt-8 text-sm uppercase tracking-[0.28em] text-ivory/70">— {{ $testimonial->author }}{{ $testimonial->role ? ', ' . $testimonial->role : '' }}</p>
+                                <blockquote class="max-w-3xl px-4 text-xl leading-relaxed sm:text-3xl md:text-5xl">“{{ $testimonial->quote }}”</blockquote>
+                                <p class="mt-5 max-w-full px-4 text-xs uppercase tracking-[0.16em] text-ivory/70 sm:mt-8 sm:text-sm sm:tracking-[0.28em]">— {{ $testimonial->author }}{{ $testimonial->role ? ', ' . $testimonial->role : '' }}</p>
                             </div>
                         @endforeach
                     </div>

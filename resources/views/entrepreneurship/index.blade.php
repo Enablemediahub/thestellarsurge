@@ -2,31 +2,31 @@
 
 @section('content')
     @php
-        $heroImage = $siteSettings->mediaUrl($siteSettings->growth_hero_image) ?? 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85';
+        $heroImage = $siteSettings->mediaUrl($siteSettings->events_hero_image) ?? 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85';
         $isLocalPath = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
         $publicBaseUrl = request()->getSchemeAndHttpHost() . '/thestellarsurge/public';
         $mainSiteUrl = $isLocalPath ? $publicBaseUrl : route('home');
         $galleryUrl = $isLocalPath ? $publicBaseUrl . '/event_planning/gallery' : route('event_planning.gallery.local');
         $formAction = $isLocalPath ? $publicBaseUrl . '/event_planning' : route('event_planning.store.local');
     @endphp
-    <div class="portal-page min-h-screen" style="--portal-color: {{ $siteSettings->growth_color ?: '#f9ad2d' }};">
-        <nav class="event-planning-nav border-b border-white/10 bg-plum text-ivory">
+    <div class="portal-page min-h-screen" style="--portal-color: {{ $siteSettings->events_color ?: '#e27f7f' }};">
+        <nav class="event-planning-nav border-b border-white/10 text-ivory" style="background-color: var(--portal-color);">
             <div class="section-shell flex items-center justify-between gap-6 py-4">
                 <a href="{{ $isLocalPath ? $publicBaseUrl : url('/') }}" class="flex items-center gap-3">
                     <img src="{{ asset('logos/Main logo.png') }}" alt="Stellar Surge" class="h-10 w-auto brightness-0 invert">
                     <span class="hidden border-l border-white/30 pl-3 text-xs font-semibold uppercase tracking-[0.2em] text-white sm:inline">Event Planning</span>
                 </a>
                 <div class="flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.14em]">
-                    <a href="#services" class="hidden text-ivory/85 transition hover:text-gold sm:inline">Services</a>
-                    <a href="#book" class="hidden text-ivory/85 transition hover:text-gold sm:inline">Book us</a>
-                    <a href="{{ $galleryUrl }}" class="rounded-full border border-gold px-4 py-2 text-gold transition hover:bg-gold hover:text-plum">Gallery</a>
-                    <a href="{{ $mainSiteUrl }}" class="rounded-full bg-gold px-4 py-2 text-plum transition hover:bg-white">Main site</a>
+                    <a href="#services" class="hidden text-ivory/85 transition hover:text-white sm:inline">Services</a>
+                    <a href="#book" class="hidden text-ivory/85 transition hover:text-white sm:inline">Book us</a>
+                    <a href="{{ $galleryUrl }}" class="rounded-full border border-white px-4 py-2 text-white transition hover:bg-white hover:text-plum">Gallery</a>
+                    <a href="{{ $mainSiteUrl }}" class="rounded-full bg-white px-4 py-2 text-plum transition hover:bg-plum hover:text-white">Main site</a>
                 </div>
             </div>
         </nav>
         <section class="portal-hero" style="background-image: linear-gradient(color-mix(in srgb, var(--portal-color) 78%, transparent), color-mix(in srgb, var(--portal-color) 58%, transparent)), url('{{ $heroImage }}');">
             <div class="section-shell">
-                <img src="{{ $siteSettings->mediaUrl($siteSettings->growth_logo_path, asset('logos/Entrepreneirship.png')) }}" alt="Event Planning & Coordination" class="mb-6 h-16 w-auto object-contain object-left">
+                <img src="{{ asset('logos/Event Planning.png') }}" alt="Event Planning & Coordination" class="mb-6 h-16 w-auto object-contain object-left">
                 <p class="text-sm uppercase tracking-[0.3em] text-white/80">Event Planning &amp; Coordination</p>
                 <h1 class="mt-5 text-5xl text-white md:text-7xl">Event Planning &amp; Coordination</h1>
                 <p class="mt-4 max-w-2xl text-lg text-white/90">Book Stellar Surge to organize your event, from the first idea and planning details to seamless on-the-day coordination.</p>

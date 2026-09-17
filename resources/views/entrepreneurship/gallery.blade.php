@@ -7,12 +7,12 @@
         $planningUrl = $isLocalPath ? $publicBaseUrl . '/event_planning' : route('event_planning.index.local');
         $mainSiteUrl = $isLocalPath ? $publicBaseUrl : route('home');
     @endphp
-    <div class="min-h-screen bg-ivory">
-        <nav class="bg-[#f9ad2d] text-white">
+    <div class="min-h-screen bg-ivory" style="--portal-color: {{ $siteSettings->events_color ?: '#e27f7f' }};">
+        <nav class="text-white" style="background-color: var(--portal-color);">
             <div class="section-shell flex items-center justify-between py-4">
                 <a href="{{ $planningUrl }}" class="flex items-center gap-3"><img src="{{ asset('logos/Main logo.png') }}" alt="Stellar Surge" class="h-10 w-auto brightness-0 invert"><span class="hidden border-l border-white/30 pl-3 text-xs font-semibold uppercase tracking-[0.2em] sm:inline">Event Planning</span></a>
                 <div class="flex items-center gap-3">
-                    <a href="{{ $planningUrl }}#book" class="rounded-full border border-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition hover:bg-white hover:text-[#f9ad2d]">Book us</a>
+                    <a href="{{ $planningUrl }}#book" class="rounded-full border border-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition hover:bg-white hover:text-plum">Book us</a>
                     <a href="{{ $mainSiteUrl }}" class="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-plum transition hover:bg-plum hover:text-white">Main site</a>
                 </div>
             </div>

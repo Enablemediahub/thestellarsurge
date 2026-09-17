@@ -1,8 +1,8 @@
 {
     "name": "Stellar Surge",
     "short_name": "Stellar Surge",
-    "start_url": "/",
-    "scope": "/",
+    "start_url": "./",
+    "scope": "./",
     "author": "Stellar Surge",
     "version": "1.0",
     "description": "Create. Experience. Impact.",

@@ -35,6 +35,7 @@ body.mobile-drawer-open {
 
 .testimonial-slide {
     will-change: transform, opacity;
+    padding: 0 0.5rem;
 }
 
 .testimonial-enter {
@@ -180,7 +181,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .event-planning-service-card:hover {
     transform: translateY(-0.35rem);
-    border-color: #c8a46a;
+    border-color: var(--portal-color, #e27f7f);
     box-shadow: 0 24px 45px rgba(50, 21, 47, 0.16);
 }
 
@@ -191,13 +192,13 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
-    background: #f9ad2d;
+    background: var(--portal-color, #e27f7f);
     color: #32152f;
     font-family: 'Montserrat', sans-serif;
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.12em;
-    box-shadow: 0 8px 18px rgba(249, 173, 45, 0.28);
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--portal-color, #e27f7f) 35%, transparent);
 }
 
 .event-thumbnail {
@@ -218,15 +219,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .events-portal .bg-plum {
-    background-color: var(--events-coral) !important;
+    background-color: var(--portal-color) !important;
 }
 
 .events-portal .text-plum {
-    color: var(--events-coral) !important;
+    color: var(--portal-color) !important;
 }
 
 .events-portal .border-plum {
-    border-color: var(--events-coral) !important;
+    border-color: var(--portal-color) !important;
 }
 
 .events-portal .text-gold {

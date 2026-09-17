@@ -1,0 +1,2 @@
+Start-Process powershell -ArgumentList '-NoExit', '-Command', 'Set-Location C:\xampp\htdocs\thestellarsurge; php artisan serve --host=0.0.0.0 --port=8000'
+ngrok http 8000

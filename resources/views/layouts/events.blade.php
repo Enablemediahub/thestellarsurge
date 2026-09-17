@@ -16,8 +16,8 @@
             ? route('events.index')
             : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? $publicBaseUrl . '/events' : route('events.index.local')));
     @endphp
-    <div class="events-portal min-h-screen bg-[#f7f2e9]" style="--portal-color: {{ $siteSettings->events_color ?: '#e27f7f' }};">
-        <nav class="border-b border-white/20 bg-[#e27f7f] text-ivory">
+    <div class="events-portal min-h-screen bg-[#f7f2e9]" style="--portal-color: {{ $siteSettings->growth_color ?: '#f9ad2d' }};">
+        <nav class="border-b border-white/20 bg-[var(--portal-color)] text-ivory">
             <div class="section-shell relative z-30 flex items-center justify-between gap-6 py-4">
                 <a href="{{ $eventsHome }}" class="flex items-center gap-3">
                     <img src="{{ asset('logos/Main logo.png') }}" alt="Stellar Surge" class="h-10 w-auto brightness-0 invert" />
@@ -28,7 +28,7 @@
                     <a href="{{ $eventsHome }}/gallery" class="text-ivory/75 transition hover:text-gold">Gallery</a>
                     <a href="{{ $eventsHome }}#about" class="text-ivory/75 transition hover:text-gold">About</a>
                     <a href="{{ $eventsHome }}#contact" class="text-ivory/75 transition hover:text-gold">Contact</a>
-                    <a href="{{ $mainSiteUrl }}" class="rounded-full border border-white/60 px-3 py-2 text-white transition hover:bg-white hover:text-[#e27f7f]">Main site</a>
+                    <a href="{{ $mainSiteUrl }}" class="rounded-full border border-white/60 px-3 py-2 text-white transition hover:bg-white hover:text-plum">Main site</a>
                 </div>
                 <button type="button" data-mobile-drawer-open="events-mobile-nav" class="flex items-center gap-2 rounded-full border border-white/50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white sm:hidden">Menu <span aria-hidden="true">☰</span></button>
                 <aside id="events-mobile-nav" data-mobile-drawer hidden class="mobile-nav-drawer sm:hidden" aria-label="Events mobile navigation">

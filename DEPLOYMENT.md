@@ -45,6 +45,12 @@
    chmod -R 755 storage bootstrap/cache
    ```
 
+### Uploaded media
+
+Filament uploads use Laravel's `public` disk. The database stores the file path, while the actual files are saved in `storage/app/public` and served through the `public/storage` symlink. The `public/storage` symlink and uploaded files are intentionally excluded from Git, so a fresh computer or deployment package will not contain them automatically.
+
+Keep `storage/app/public` backed up separately and transfer it during deployment, then run `php artisan storage:link` on the target server. The repository's `logos/` folder contains bundled brand assets and is tracked separately from admin uploads.
+
 ## 3. Subdomain setup
 
 In Hostinger hPanel → Subdomains create:

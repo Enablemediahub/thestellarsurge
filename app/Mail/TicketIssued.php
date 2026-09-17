@@ -23,7 +23,9 @@ class TicketIssued extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Stellar Surge event tickets',
+            subject: $this->tickets->every(fn ($ticket) => (int) $ticket->amount === 0)
+                ? 'Your Stellar Surge free registration'
+                : 'Your Stellar Surge event tickets',
         );
     }
 

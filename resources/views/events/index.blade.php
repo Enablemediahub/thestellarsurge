@@ -11,10 +11,10 @@
         $eventShowRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.show' : ($isPathPortal ? 'events.show.path' : 'events.show.local');
         $eventCheckoutRoute = $eventsHost === 'events.thestellarsurge.com' ? 'events.checkout' : ($isPathPortal ? 'events.checkout.path' : 'events.checkout.local');
     @endphp
-    @php($heroImage = $siteSettings->mediaUrl($siteSettings->events_hero_image) ?? $featuredEvent?->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1800&q=85')
+    @php($heroImage = $siteSettings->mediaUrl($siteSettings->growth_hero_image) ?? $featuredEvent?->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1800&q=85')
     <section class="relative overflow-hidden bg-cover bg-center py-20 text-ivory md:py-28" style="background-image: linear-gradient(color-mix(in srgb, var(--portal-color) 78%, transparent), color-mix(in srgb, var(--portal-color) 58%, transparent)), url('{{ $heroImage }}');">
         <div class="section-shell relative">
-            <img src="{{ $siteSettings->mediaUrl($siteSettings->events_logo_path, asset('logos/Events.png')) }}" alt="Curated Events" class="mb-6 h-16 w-auto object-contain object-left">
+            <img src="{{ asset('logos/Curated Events.png') }}" alt="Curated Events" class="mb-6 h-16 w-auto object-contain object-left">
             <p class="text-sm uppercase tracking-[0.35em] text-white/80">Curated Events</p>
             <h1 class="mt-5 max-w-3xl text-5xl leading-none md:text-7xl">Curated Events</h1>
             <p class="mt-6 max-w-2xl text-lg text-white/85">The Stellar Woman Conference, Becoming Bride, Conversations With Men, Young Christian Entrepreneurship Conference, and Creatives Hangout.</p>
