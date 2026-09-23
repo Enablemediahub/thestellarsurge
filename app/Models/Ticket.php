@@ -37,10 +37,38 @@ class Ticket extends Model
     protected static function booted(): void
     {
         static::saving(function (Ticket $ticket): void {
+            if ($ticket->isDirty('phone')) {
+                $ticket->phone = static::normalizePhone($ticket->phone);
+            }
+
             if ($ticket->isDirty('verified')) {
                 $ticket->verified_at = $ticket->verified ? now() : null;
             }
         });
+    }
+
+    public static function normalizePhone(?string $phone): ?string
+    {
+        if (blank($phone)) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if (str_starts_with($digits, '0') && strlen($digits) === 10) {
+            return '+233' . substr($digits, 1);
+        }
+
+        if (str_starts_with($digits, '233') && strlen($digits) === 12) {
+            return '+' . $digits;
+        }
+
+        return str_starts_with($phone, '+') ? '+' . $digits : $digits;
+    }
+
+    public function getFormattedPhoneAttribute(): ?string
+    {
+        return static::normalizePhone($this->phone);
     }
 
     public function event(): BelongsTo

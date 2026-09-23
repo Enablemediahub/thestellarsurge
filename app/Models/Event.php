@@ -63,7 +63,16 @@ class Event extends Model
             return $this->banner_image;
         }
 
-        return url('storage/' . ltrim($this->banner_image, '/'));
+        $host = request()->getHost();
+        $storageBaseUrl = in_array($host, [
+            'events.thestellarsurge.com',
+            'entrepreneurship.thestellarsurge.com',
+            'training.thestellarsurge.com',
+        ])
+            ? 'https://thestellarsurge.com'
+            : rtrim(url('/'), '/');
+
+        return $storageBaseUrl . '/storage/' . ltrim($this->banner_image, '/');
     }
 
     public function ticketOptions(): array

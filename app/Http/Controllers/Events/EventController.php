@@ -135,7 +135,7 @@ class EventController extends Controller
                     'reference' => $ticketReference,
                     'email' => $validated['email'],
                     'name' => $validated['name'],
-                    'phone' => $validated['phone'],
+                    'phone' => Ticket::normalizePhone($validated['phone']),
                     'whatsapp_confirmed' => true,
                     'ticket_type' => $ticketOption['slug'],
                     'amount' => $ticketPrice,

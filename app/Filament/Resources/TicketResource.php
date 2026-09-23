@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Grouping\Group;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TicketResource extends Resource
 {
@@ -40,6 +41,10 @@ class TicketResource extends Resource
                 Tables\Columns\TextColumn::make('event.title')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\TextColumn::make('formatted_phone')
+                    ->label('Phone')
+                    ->searchable(query: fn ($query, string $search) => $query->where('phone', 'like', "%{$search}%"))
+                    ->copyable(),
                 Tables\Columns\IconColumn::make('whatsapp_confirmed')
                     ->label('WhatsApp')
                     ->boolean(),
@@ -70,6 +75,47 @@ class TicketResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
+                Tables\Actions\BulkAction::make('exportExcel')
+                    ->label('Export to Excel')
+                    ->icon('heroicon-o-table-cells')
+                    ->action(function ($records) {
+                        $rows = [['Reference', 'Event', 'Name', 'Email', 'Phone', 'Ticket type', 'Amount', 'Currency', 'Status', 'Created at']];
+
+                        foreach ($records as $ticket) {
+                            $rows[] = [
+                                $ticket->reference,
+                                $ticket->event?->title,
+                                $ticket->name,
+                                $ticket->email,
+                                $ticket->formatted_phone,
+                                $ticket->ticket_type,
+                                $ticket->amount,
+                                $ticket->currency,
+                                $ticket->status,
+                                $ticket->created_at?->toDateTimeString(),
+                            ];
+                        }
+
+                        return response()->streamDownload(function () use ($rows): void {
+                            $handle = fopen('php://output', 'w');
+                            foreach ($rows as $row) {
+                                fputcsv($handle, $row);
+                            }
+                            fclose($handle);
+                        }, 'stellar-surge-tickets.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+                    })
+                    ->deselectRecordsAfterCompletion(),
+                Tables\Actions\BulkAction::make('exportPdf')
+                    ->label('Export to PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->action(function ($records) {
+                        $html = view('filament.exports.tickets-pdf', ['tickets' => $records])->render();
+
+                        return response()->streamDownload(function () use ($html): void {
+                            echo Pdf::loadHTML($html)->output();
+                        }, 'stellar-surge-tickets.pdf', ['Content-Type' => 'application/pdf']);
+                    })
+                    ->deselectRecordsAfterCompletion(),
                 Tables\Actions\BulkAction::make('sendWhatsApp')
                     ->label('Send WhatsApp')
                     ->icon('heroicon-o-chat-bubble-left-right')

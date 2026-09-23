@@ -4,8 +4,9 @@
     @php
         $isLocalPath = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
         $publicBaseUrl = request()->getSchemeAndHttpHost() . '/thestellarsurge/public';
+        $isLocalHost = in_array(request()->getHost(), ['localhost', '127.0.0.1']);
         $planningUrl = $isLocalPath ? $publicBaseUrl . '/event_planning' : route('event_planning.index.local');
-        $mainSiteUrl = $isLocalPath ? $publicBaseUrl : route('home');
+        $mainSiteUrl = $isLocalPath || $isLocalHost ? $publicBaseUrl : 'https://thestellarsurge.com/';
     @endphp
     <div class="min-h-screen bg-ivory" style="--portal-color: {{ $siteSettings->events_color ?: '#e27f7f' }};">
         <nav class="text-white" style="background-color: var(--portal-color);">

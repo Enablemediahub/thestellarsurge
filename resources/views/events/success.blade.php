@@ -16,6 +16,11 @@
                 <div class="mt-6 rounded-2xl bg-[#fdfaf5] p-4 text-left text-sm text-charcoal/80">
                     <p class="font-semibold text-plum">{{ $tickets->count() }} ticket(s) issued</p>
                     <p class="mt-2">Your PDF ticket has been sent to {{ $tickets->first()->email }}.</p>
+                    <div class="mt-4 rounded-xl border-2 border-gold bg-gold/10 p-4 text-center">
+                        <p class="text-base font-bold uppercase tracking-[0.12em] text-plum">Download your ticket now</p>
+                        <p class="mt-1 text-xs text-charcoal/75">Keep the PDF ready for entry at the event.</p>
+                        <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.ticket.pdf', ['slug' => $event->slug, 'reference' => $tickets->first()->reference]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.ticket.pdf.path', ['slug' => $event->slug, 'reference' => $tickets->first()->reference]) : route('events.ticket.pdf.local', ['slug' => $event->slug, 'reference' => $tickets->first()->reference])) }}" class="mt-3 inline-flex rounded-full bg-plum px-6 py-3 text-sm font-bold text-ivory transition hover:bg-charcoal">Download PDF ticket</a>
+                    </div>
                     <div class="mt-3 space-y-1 text-xs">
                         @foreach ($tickets as $ticket)
                             <p class="flex items-center justify-between gap-3"><span>{{ $ticket->reference }}</span><a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.ticket.pdf', ['slug' => $event->slug, 'reference' => $ticket->reference]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.ticket.pdf.path', ['slug' => $event->slug, 'reference' => $ticket->reference]) : route('events.ticket.pdf.local', ['slug' => $event->slug, 'reference' => $ticket->reference])) }}" class="font-semibold text-plum underline">Download PDF</a></p>

@@ -3,13 +3,16 @@
 @section('content')
     @php
         $isPublicPathPortal = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
-        $isLocalHost = request()->getHost() === 'localhost' || $isPublicPathPortal;
-        $publicBaseUrl = request()->getSchemeAndHttpHost() . '/thestellarsurge/public';
-        $eventsPortalUrl = $isLocalHost ? $publicBaseUrl . '/events' : route('events.index');
-        $entrepreneurshipPortalUrl = $isLocalHost ? $publicBaseUrl . '/event_planning' : route('event_planning.index');
-        $trainingPortalUrl = $isLocalHost ? $publicBaseUrl . '/training' : route('training.index');
-        $consultationUrl = $isLocalHost ? $publicBaseUrl . '/consultation' : route('consultation');
-        $blogUrl = $isLocalHost ? $publicBaseUrl . '/blogsurge' : route('blogsurge');
+        $isLocalHost = in_array(request()->getHost(), ['localhost', '127.0.0.1']) || $isPublicPathPortal;
+        $publicBaseUrl = request()->getSchemeAndHttpHost() . ($isPublicPathPortal ? '/thestellarsurge/public' : '');
+        $productionBaseUrl = 'https://thestellarsurge.com';
+        $eventsPortalUrl = $isLocalHost ? $publicBaseUrl . '/events' : 'https://events.thestellarsurge.com/';
+        $entrepreneurshipPortalUrl = $isLocalHost ? $publicBaseUrl . '/event_planning' : 'https://entrepreneurship.thestellarsurge.com/';
+        $trainingPortalUrl = $isLocalHost ? $publicBaseUrl . '/training' : 'https://training.thestellarsurge.com/';
+        $consultationUrl = $isLocalHost ? $publicBaseUrl . '/consultation' : $productionBaseUrl . '/consultation';
+        $blogUrl = $isLocalHost ? $publicBaseUrl . '/blogsurge' : $productionBaseUrl . '/blogsurge';
+        $eventShowBaseUrl = $isLocalHost ? $publicBaseUrl . '/events' : 'https://events.thestellarsurge.com';
+        $adminLoginUrl = $isLocalHost ? $publicBaseUrl . '/admin/login' : $productionBaseUrl . '/admin/login';
         $testimonialRoute = $isLocalHost ? $publicBaseUrl . '/testimonials' : route('testimonials.store.production');
         $subscriberRoute = $isLocalHost ? $publicBaseUrl . '/subscribe' : route('subscribers.store.production');
     @endphp
@@ -168,7 +171,7 @@
                                     <p><strong>Date:</strong> {{ $event->start_at?->format('d M Y') ?? 'TBA' }}</p>
                                     <p><strong>Location:</strong> {{ $event->location }}</p>
                                 </div>
-                                <a href="{{ route('events.show.local', ['slug' => $event->slug]) }}" class="mt-6 inline-flex rounded-full bg-plum px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-charcoal">Get ticket</a>
+                                <a href="{{ $eventShowBaseUrl . '/' . $event->slug }}" class="mt-6 inline-flex rounded-full bg-plum px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-charcoal">Get ticket</a>
                             </div>
                         </article>
                     @endforeach
@@ -296,7 +299,7 @@
                 <p class="text-xs uppercase tracking-[0.2em] text-plum/60">{{ $siteSettings->footer_credit ?: 'Developed and Designed by DALE QUIST [Enable Technologies]' }}</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ url('/admin/login') }}" target="_blank" rel="noopener noreferrer" class="inline-flex rounded-full border border-plum px-4 py-2 font-medium text-plum transition hover:bg-plum hover:text-ivory">Admin login</a>
+                <a href="{{ $adminLoginUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex rounded-full border border-plum px-4 py-2 font-medium text-plum transition hover:bg-plum hover:text-ivory">Admin login</a>
                 <button data-pwa-install type="button" hidden class="inline-flex rounded-full border border-plum px-4 py-2 font-medium text-plum hover:bg-plum hover:text-ivory">Install app</button>
             </div>
         </div>

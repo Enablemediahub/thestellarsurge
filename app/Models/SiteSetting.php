@@ -51,7 +51,16 @@ class SiteSetting extends Model
             return asset($path);
         }
 
-        return request()->getSchemeAndHttpHost() . rtrim(request()->getBaseUrl(), '/') . '/storage/' . ltrim($path, '/');
+        $host = request()->getHost();
+        $storageBaseUrl = in_array($host, [
+            'events.thestellarsurge.com',
+            'entrepreneurship.thestellarsurge.com',
+            'training.thestellarsurge.com',
+        ])
+            ? 'https://thestellarsurge.com'
+            : request()->getSchemeAndHttpHost() . rtrim(request()->getBaseUrl(), '/');
+
+        return $storageBaseUrl . '/storage/' . ltrim($path, '/');
     }
 
     public function heroSlidesForDisplay(): array

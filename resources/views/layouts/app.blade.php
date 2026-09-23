@@ -20,6 +20,7 @@
                 --color-warm-ivory: {{ $siteSettings->ivory_color ?: '#F7F2E9' }};
             }
         </style>
+        @stack('meta')
         <title>{{ $siteSettings->site_name ?: config('app.name', 'Stellar Surge') }}</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('styles')

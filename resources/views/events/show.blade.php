@@ -4,6 +4,19 @@
     @php
         $eventImage = $event->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80';
     @endphp
+    @push('meta')
+        <meta name="description" content="{{ $event->summary ?: $event->title }}">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="{{ request()->fullUrl() }}">
+        <meta property="og:title" content="{{ $event->title }}">
+        <meta property="og:description" content="{{ $event->summary ?: $event->title }}">
+        <meta property="og:image" content="{{ $eventImage }}">
+        <meta property="og:image:alt" content="{{ $event->title }} flyer">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $event->title }}">
+        <meta name="twitter:description" content="{{ $event->summary ?: $event->title }}">
+        <meta name="twitter:image" content="{{ $eventImage }}">
+    @endpush
     <div class="section-shell py-16">
         <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.index') : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.index.path') : route('events.index.local')) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to events</a>
 

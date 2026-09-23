@@ -5,7 +5,8 @@
         $heroImage = $siteSettings->mediaUrl($siteSettings->events_hero_image) ?? 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85';
         $isLocalPath = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
         $publicBaseUrl = request()->getSchemeAndHttpHost() . '/thestellarsurge/public';
-        $mainSiteUrl = $isLocalPath ? $publicBaseUrl : route('home');
+        $isLocalHost = in_array(request()->getHost(), ['localhost', '127.0.0.1']);
+        $mainSiteUrl = $isLocalPath || $isLocalHost ? $publicBaseUrl : 'https://thestellarsurge.com/';
         $galleryUrl = $isLocalPath ? $publicBaseUrl . '/event_planning/gallery' : route('event_planning.gallery.local');
         $formAction = $isLocalPath ? $publicBaseUrl . '/event_planning' : route('event_planning.store.local');
     @endphp

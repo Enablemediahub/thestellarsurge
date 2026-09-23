@@ -20,14 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (! app()->runningInConsole()) {
-            $basePath = rtrim(request()->getBaseUrl(), '/');
-
-            config([
-                'livewire.asset_url' => $basePath . '/livewire/livewire.js',
-            ]);
-        }
-
         if (app()->environment('local') && ! app()->runningInConsole()) {
             $forwardedHost = request()->header('x-forwarded-host');
             $forwardedProtocol = request()->header('x-forwarded-proto', request()->getScheme());

@@ -35,7 +35,11 @@
             @php
                 $security = app(\App\Services\TicketSecurityService::class);
                 $payload = $security->payloadFor($ticket);
-                $eventLogo = base64_encode(file_get_contents(public_path('logos/Events.png')));
+                $eventLogoPath = public_path('logos/Events.png');
+                if (! is_readable($eventLogoPath)) {
+                    $eventLogoPath = base_path('logos/Events.png');
+                }
+                $eventLogo = is_readable($eventLogoPath) ? base64_encode(file_get_contents($eventLogoPath)) : '';
             @endphp
             <div class="top-rule"></div>
             <div class="content">

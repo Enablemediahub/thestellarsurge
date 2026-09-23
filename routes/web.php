@@ -5,6 +5,10 @@ use App\Http\Controllers\Main\CommunityController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+require __DIR__.'/events.php';
+require __DIR__.'/entrepreneurship.php';
+require __DIR__.'/training.php';
+
 Route::group([], function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::view('/about', 'main.about')->name('about');
@@ -61,6 +65,3 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/events.php';
-require __DIR__.'/entrepreneurship.php';
-require __DIR__.'/training.php';
