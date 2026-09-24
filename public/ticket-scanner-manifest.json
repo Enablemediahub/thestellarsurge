@@ -9,8 +9,8 @@
     "background_color": "#F7F2E9",
     "icons": [
         {
-            "src": "/logos/Main logo.png",
-            "sizes": "512x512",
+            "src": "/logos/enable-technologies.png",
+            "sizes": "any",
             "type": "image/png"
         }
     ]

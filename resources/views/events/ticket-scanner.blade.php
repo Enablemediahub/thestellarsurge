@@ -1,5 +1,10 @@
 @extends('layouts.events')
 
+@push('meta')
+    <link rel="icon" type="image/png" href="{{ request()->getHost() === 'events.thestellarsurge.com' ? 'https://thestellarsurge.com/logos/enable-technologies.png' : asset('logos/enable-technologies.png') }}">
+    <link rel="apple-touch-icon" href="{{ request()->getHost() === 'events.thestellarsurge.com' ? 'https://thestellarsurge.com/logos/enable-technologies.png' : asset('logos/enable-technologies.png') }}">
+@endpush
+
 @push('styles')
     <link rel="manifest" href="{{ asset('ticket-scanner-manifest.json') }}">
     <style>
@@ -11,6 +16,7 @@
 @endpush
 
 @section('events-content')
+    @php($enableLogoUrl = request()->getHost() === 'events.thestellarsurge.com' ? 'https://thestellarsurge.com/logos/enable-technologies.png' : asset('logos/enable-technologies.png'))
     <main class="scanner-shell bg-[#f7f2e9] py-8 md:py-12">
         <div class="mx-auto w-full max-w-xl px-4 sm:px-6">
             <div class="mb-6 flex items-center justify-between gap-4">
@@ -18,7 +24,10 @@
                     <p class="text-xs font-semibold uppercase tracking-[0.28em] text-plum/60">Stellar Surge Events</p>
                     <h1 class="mt-2 text-3xl text-plum md:text-4xl">Ticket scanner</h1>
                 </div>
-                <span class="rounded-full bg-green-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-green-800">Ready</span>
+                <div class="flex flex-col items-end gap-2">
+                    <img src="{{ $enableLogoUrl }}" alt="Enable Technologies" class="h-8 w-auto max-w-[9rem] object-contain">
+                    <span class="rounded-full bg-green-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-green-800">Ready</span>
+                </div>
             </div>
 
             <section class="overflow-hidden rounded-[1.5rem] border border-[#eadfcf] bg-white shadow-brand">
@@ -43,6 +52,11 @@
                     </div>
                 </div>
             </section>
+
+            <div class="mt-5 flex items-center justify-center gap-2 rounded-2xl border border-[#eadfcf] bg-white/80 px-3 py-2 text-center shadow-sm">
+                <img src="{{ $enableLogoUrl }}" alt="" class="h-8 w-8 object-contain">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-plum/60">Powered by Enable Technologies</p>
+            </div>
 
             <p class="mt-5 text-center text-xs text-charcoal/60">Use this page on the event entrance phone. A successful scan opens the secure verification page.</p>
         </div>
@@ -73,7 +87,10 @@
                     const url = new URL(value, window.location.origin);
                     if (url.pathname.includes('/tickets/verify')) {
                         stopScanner();
-                        window.location.href = url.href;
+                        const scannerPath = window.location.pathname.replace(/\/tickets\/?$/, '/tickets/verify');
+                        const verificationUrl = new URL(window.location.origin + scannerPath);
+                        verificationUrl.search = url.search;
+                        window.location.href = verificationUrl.href;
                         return;
                     }
                 } catch (error) {

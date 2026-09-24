@@ -95,6 +95,8 @@ class EventController extends Controller
     {
         abort_unless(\App\Models\SiteSetting::current()->ticket_scanner_enabled, 404);
 
+        session(['ticket_scanner_authorized' => true]);
+
         return view('events.ticket-scanner');
     }
 
@@ -252,9 +254,20 @@ class EventController extends Controller
 
     public function verifyTicket(Request $request)
     {
+        if (! $request->session()->get('ticket_scanner_authorized', false)) {
+            return view('events.verify-ticket', [
+                'ticket' => null,
+                'claims' => null,
+                'token' => null,
+                'scannerRequired' => true,
+                'scannerUrl' => $this->scannerRoute($request),
+            ]);
+        }
+
         $token = (string) $request->query('token');
         $claims = $token ? app(TicketSecurityService::class)->verify($token) : null;
         $ticket = null;
+        $autoVerified = false;
 
         if ($claims && is_numeric($claims['ticket_id'] ?? null)) {
             $ticket = Ticket::query()->with('event')->find($claims['ticket_id']);
@@ -264,11 +277,36 @@ class EventController extends Controller
             }
         }
 
-        return view('events.verify-ticket', compact('ticket', 'claims', 'token'));
+        if ($ticket?->status === 'paid' && ! $ticket->verified) {
+            $verifiedAt = now();
+            $updated = Ticket::query()
+                ->whereKey($ticket->id)
+                ->where('verified', false)
+                ->update([
+                    'verified' => true,
+                    'verified_at' => $verifiedAt,
+                    'updated_at' => $verifiedAt,
+                ]);
+            $ticket->refresh();
+            $autoVerified = $updated === 1;
+        }
+
+        return view('events.verify-ticket', [
+            'ticket' => $ticket,
+            'claims' => $claims,
+            'token' => $token,
+            'scannerRequired' => false,
+            'scannerUrl' => $this->scannerRoute($request),
+            'autoVerified' => $autoVerified,
+        ]);
     }
 
     public function confirmTicket(Request $request)
     {
+        if (! $request->session()->get('ticket_scanner_authorized', false)) {
+            return redirect($this->scannerRoute($request))->with('verification_error', 'Open the official ticket scanner before scanning a ticket.');
+        }
+
         $token = (string) $request->input('token');
         $claims = $token ? app(TicketSecurityService::class)->verify($token) : null;
         $ticket = $claims && is_numeric($claims['ticket_id'] ?? null)
@@ -280,10 +318,22 @@ class EventController extends Controller
         }
 
         if (! $ticket->verified) {
-            $ticket->update(['verified' => true]);
+            $ticket->forceFill([
+                'verified' => true,
+                'verified_at' => now(),
+            ])->save();
         }
 
         return redirect()->route($this->verificationRouteName($request), ['token' => $token]);
+    }
+
+    private function scannerRoute(Request $request): string
+    {
+        $routeName = $request->getHost() === 'events.thestellarsurge.com'
+            ? 'events.ticket.scanner'
+            : (str_starts_with($request->getRequestUri(), '/thestellarsurge/public') ? 'events.ticket.scanner.path' : 'events.ticket.scanner.local');
+
+        return route($routeName);
     }
 
     private function settlePayment(Payment $payment, string $status, Request $request): void
