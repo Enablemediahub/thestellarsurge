@@ -33,6 +33,10 @@
                 <img data-portal-loader-logo src="{{ asset('logos/Events.png') }}" alt="" />
             </div>
             <p data-portal-loader-label class="mt-5 text-xs font-semibold uppercase tracking-[0.28em] text-white">Opening portal</p>
+            <div class="mt-8 flex flex-wrap justify-center gap-3 px-6">
+                <a data-portal-loader-main href="{{ url('/') }}" class="rounded-full bg-white px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-plum transition hover:bg-white/85">Back to main site</a>
+                <a data-portal-loader-home href="{{ url('/') }}" class="rounded-full border border-white px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-white hover:text-plum">Open portal home</a>
+            </div>
         </div>
 
         <a

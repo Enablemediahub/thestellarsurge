@@ -14,6 +14,8 @@ const cookieDismiss = document.querySelector('[data-cookie-dismiss]');
 const portalLoader = document.querySelector('[data-portal-loader]');
 const portalLoaderLogo = document.querySelector('[data-portal-loader-logo]');
 const portalLoaderLabel = document.querySelector('[data-portal-loader-label]');
+const portalLoaderMain = document.querySelector('[data-portal-loader-main]');
+const portalLoaderHome = document.querySelector('[data-portal-loader-home]');
 let deferredPrompt = null;
 
 if (cookieBanner && !localStorage.getItem('stellar-surge-cookie-choice')) {
@@ -40,8 +42,18 @@ document.querySelectorAll('[data-portal-loading]').forEach((portalLink) => {
         portalLoader.style.setProperty('--portal-loader-color', portalLink.dataset.portalColor || '#e27f7f');
         portalLoaderLogo.src = portalLink.dataset.portalLogo || portalLoaderLogo.src;
         portalLoaderLabel.textContent = `Opening ${portalLink.getAttribute('aria-label') || 'portal'}`;
+        const currentPath = window.location.pathname;
+        const localBase = currentPath.startsWith('/thestellarsurge/public/') ? '/thestellarsurge/public/' : '/';
+        portalLoaderMain.href = `${window.location.origin}${localBase}`;
+        portalLoaderHome.href = portalLink.href;
         portalLoader.hidden = false;
     });
+});
+
+window.addEventListener('pageshow', () => {
+    if (portalLoader) {
+        portalLoader.hidden = true;
+    }
 });
 
 document.querySelectorAll('[data-mobile-drawer-open]').forEach((openButton) => {

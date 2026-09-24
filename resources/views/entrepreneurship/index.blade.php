@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $heroImage = $siteSettings->mediaUrl($siteSettings->events_hero_image) ?? 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85';
+        $heroImage = $siteSettings->mediaUrl($siteSettings->growth_hero_image) ?? 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85';
         $isLocalPath = str_starts_with(request()->getRequestUri(), '/thestellarsurge/public');
         $publicBaseUrl = request()->getSchemeAndHttpHost() . '/thestellarsurge/public';
         $isLocalHost = in_array(request()->getHost(), ['localhost', '127.0.0.1']);

@@ -20,6 +20,23 @@ Route::domain('events.thestellarsurge.com')->group(function () {
     Route::get('/{slug}/tickets/{reference}/pdf', [EventController::class, 'downloadTicket'])->name('events.ticket.pdf');
 });
 
+Route::domain('thestellarsurge.com')->group(function () {
+    Route::get('/events', [EventController::class, 'index'])->name('events.index.production');
+    Route::get('/events/gallery', [EventController::class, 'galleryIndex'])->name('events.gallery.index.production');
+    Route::get('/events/tickets/', [EventController::class, 'ticketScanner'])->name('events.ticket.scanner.production');
+    Route::get('/events/{slug}', [EventController::class, 'show'])->name('events.show.production');
+    Route::get('/events/{slug}/gallery', [EventController::class, 'gallery'])->name('events.gallery.production');
+    Route::post('/events/{slug}/gallery/{galleryItem}/like', [EventController::class, 'likeGalleryItem'])->name('events.gallery.like.production');
+    Route::post('/events/{slug}/gallery/{galleryItem}/comments', [EventController::class, 'commentGalleryItem'])->name('events.gallery.comment.production');
+    Route::get('/events/{slug}/checkout', [EventController::class, 'checkout'])->name('events.checkout.production');
+    Route::post('/events/{slug}/checkout', [EventController::class, 'purchase'])->name('events.purchase.production');
+    Route::get('/events/payment/callback', [EventController::class, 'callback'])->name('events.payment.callback.production');
+    Route::get('/events/tickets/verify', [EventController::class, 'verifyTicket'])->name('events.ticket.verify.production');
+    Route::post('/events/tickets/verify', [EventController::class, 'confirmTicket'])->name('events.ticket.verify.confirm.production');
+    Route::get('/events/{slug}/success', [EventController::class, 'success'])->name('events.success.production');
+    Route::get('/events/{slug}/tickets/{reference}/pdf', [EventController::class, 'downloadTicket'])->name('events.ticket.pdf.production');
+});
+
 Route::group([], function () {
     Route::get('/events', [EventController::class, 'index'])->name('events.index.local');
     Route::get('/events/gallery', [EventController::class, 'galleryIndex'])->name('events.gallery.index.local');
