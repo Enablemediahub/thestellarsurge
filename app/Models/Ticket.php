@@ -12,6 +12,7 @@ class Ticket extends Model
 
     protected $fillable = [
         'event_id',
+        'free_registration_link_id',
         'user_id',
         'reference',
         'email',
@@ -74,6 +75,11 @@ class Ticket extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function freeRegistrationLink(): BelongsTo
+    {
+        return $this->belongsTo(FreeRegistrationLink::class);
     }
 
     public function user(): BelongsTo

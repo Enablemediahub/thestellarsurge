@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\FreeRegistrationLink;
 use App\Models\Payment;
 use App\Models\Ticket;
 use App\Models\EventGalleryComment;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Unicodeveloper\Paystack\Facades\Paystack;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\TicketSecurityService;
@@ -88,7 +90,11 @@ class EventController extends Controller
             ->where('is_published', true)
             ->firstOrFail();
 
-        return view('events.checkout', compact('event'));
+        $freeAccessToken = (string) request()->query('free_access', '');
+        $freeRegistrationLink = $this->findAvailableFreeRegistrationLink($event, $freeAccessToken);
+        $freeRegistrationRemaining = $freeRegistrationLink?->remainingRegistrations();
+
+        return view('events.checkout', compact('event', 'freeAccessToken', 'freeRegistrationLink', 'freeRegistrationRemaining'));
     }
 
     public function ticketScanner()
@@ -107,6 +113,9 @@ class EventController extends Controller
             ->where('is_published', true)
             ->firstOrFail();
 
+        $freeAccessToken = (string) $request->input('free_access', '');
+        $freeRegistrationLink = $this->findAvailableFreeRegistrationLink($event, $freeAccessToken);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email'],
@@ -123,16 +132,35 @@ class EventController extends Controller
             return back()->withErrors(['ticket_type' => 'Please select a valid ticket category.'])->withInput();
         }
 
-        $ticketPrice = (int) $ticketOption['price'];
-        $tickets = collect();
-        $ticketReferences = [];
+        $ticketPrice = $freeRegistrationLink ? 0 : (int) $ticketOption['price'];
+        $paymentReference = 'SS-' . strtoupper(Str::random(12));
+        [$tickets, $ticketReferences, $payment] = DB::transaction(function () use ($freeRegistrationLink, $event, $request, $validated, $quantity, $ticketOption, $ticketPrice, $paymentReference): array {
+            $lockedLink = null;
 
-        DB::transaction(function () use (&$tickets, &$ticketReferences, $event, $request, $validated, $quantity, $ticketOption, $ticketPrice): void {
+            if ($freeRegistrationLink) {
+                $lockedLink = FreeRegistrationLink::query()
+                    ->whereKey($freeRegistrationLink->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                abort_unless($lockedLink?->isAvailable(), 410, 'This free registration link has expired or reached its registration limit. Please contact the event organizer for a new link.');
+
+                if ($quantity > $lockedLink->remainingRegistrations()) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'This link has only ' . $lockedLink->remainingRegistrations() . ' free registration(s) remaining.',
+                    ]);
+                }
+            }
+
+            $tickets = collect();
+            $ticketReferences = [];
+
             for ($index = 0; $index < $quantity; $index++) {
                 $ticketReference = 'TCK-' . strtoupper(Str::random(12));
                 $ticketReferences[] = $ticketReference;
                 $tickets->push(Ticket::create([
                     'event_id' => $event->id,
+                    'free_registration_link_id' => $lockedLink?->id,
                     'user_id' => $request->user()?->id,
                     'reference' => $ticketReference,
                     'email' => $validated['email'],
@@ -145,27 +173,38 @@ class EventController extends Controller
                     'status' => 'pending',
                 ]));
             }
-        });
 
-        $paymentReference = 'SS-' . strtoupper(Str::random(12));
-        $payment = Payment::create([
-            'event_id' => $event->id,
-            'ticket_id' => $tickets->first()->id,
-            'user_id' => $request->user()?->id,
-            'reference' => $paymentReference,
-            'amount' => $ticketPrice * $quantity,
-            'currency' => $event->currency,
-            'status' => 'pending',
-            'gateway' => config('services.paystack.mode') === 'demo' && ! app()->environment('production') ? 'demo' : 'paystack',
-            'metadata' => [
-                'event_slug' => $event->slug,
-                'ticket_references' => $ticketReferences,
-                'customer_email' => $validated['email'],
-                'quantity' => $quantity,
-                'ticket_type' => $ticketOption['slug'],
-                'ticket_type_name' => $ticketOption['name'],
-            ],
-        ]);
+            if ($lockedLink) {
+                $lockedLink->update([
+                    'registrations_used' => $lockedLink->registrations_used + $quantity,
+                ]);
+            }
+
+            $payment = Payment::create([
+                'event_id' => $event->id,
+                'ticket_id' => $tickets->first()->id,
+                'user_id' => $request->user()?->id,
+                'reference' => $paymentReference,
+                'amount' => $ticketPrice * $quantity,
+                'currency' => $event->currency,
+                'status' => 'pending',
+                'gateway' => $lockedLink
+                    ? 'complimentary'
+                    : (config('services.paystack.mode') === 'demo' && ! app()->environment('production') ? 'demo' : 'paystack'),
+                'metadata' => [
+                    'event_slug' => $event->slug,
+                    'ticket_references' => $ticketReferences,
+                    'customer_email' => $validated['email'],
+                    'quantity' => $quantity,
+                    'ticket_type' => $ticketOption['slug'],
+                    'ticket_type_name' => $ticketOption['name'],
+                    'ticket_ids' => $tickets->pluck('id')->all(),
+                    'free_registration_link_id' => $lockedLink?->id,
+                ],
+            ]);
+
+            return [$tickets, $ticketReferences, $payment];
+        });
 
         if ($ticketPrice === 0) {
             $this->settlePayment($payment, 'success', $request);
@@ -334,6 +373,22 @@ class EventController extends Controller
             : (str_starts_with($request->getRequestUri(), '/thestellarsurge/public') ? 'events.ticket.scanner.path' : 'events.ticket.scanner.local');
 
         return route($routeName);
+    }
+
+    private function findAvailableFreeRegistrationLink(Event $event, string $token): ?FreeRegistrationLink
+    {
+        if ($token === '') {
+            return null;
+        }
+
+        $link = FreeRegistrationLink::query()
+            ->where('event_id', $event->id)
+            ->where('token_hash', hash('sha256', $token))
+            ->first();
+
+        abort_unless($link?->isAvailable(), 410, 'This free registration link has expired or reached its registration limit. Please contact the event organizer for a new link.');
+
+        return $link;
     }
 
     private function settlePayment(Payment $payment, string $status, Request $request): void

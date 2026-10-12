@@ -48,6 +48,20 @@ class Event extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function freeRegistrationLinks(): HasMany
+    {
+        return $this->hasMany(FreeRegistrationLink::class);
+    }
+
+    public function activeFreeRegistrationLink(): ?FreeRegistrationLink
+    {
+        return $this->freeRegistrationLinks()
+            ->where('expires_at', '>', now())
+            ->whereColumn('registrations_used', '<', 'registration_limit')
+            ->latest()
+            ->first();
+    }
+
     public function galleryItems(): HasMany
     {
         return $this->hasMany(EventGalleryItem::class)->orderBy('category')->orderBy('sort_order');

@@ -2,6 +2,19 @@
 
 @section('events-content')
     @php($eventImage = $event->bannerImageUrl() ?? 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80')
+    @push('meta')
+        <meta name="description" content="{{ $event->summary ?: $event->title }}">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="{{ request()->url() }}">
+        <meta property="og:title" content="{{ $event->title }}">
+        <meta property="og:description" content="{{ $event->summary ?: $event->title }}">
+        <meta property="og:image" content="{{ $eventImage }}">
+        <meta property="og:image:alt" content="{{ $event->title }} flyer">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $event->title }}">
+        <meta name="twitter:description" content="{{ $event->summary ?: $event->title }}">
+        <meta name="twitter:image" content="{{ $eventImage }}">
+    @endpush
     <div class="section-shell py-16">
         <a href="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.show', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.show.path', ['slug' => $event->slug]) : route('events.show.local', ['slug' => $event->slug])) }}" class="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-plum">← Back to event</a>
 
@@ -21,6 +34,11 @@
                 @if ($event->isFree())
                     <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">There is no payment for this program. Complete the form to register and receive your ticket.</div>
                 @endif
+                @if ($freeRegistrationLink)
+                    <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
+                        Complimentary registration link: {{ $freeRegistrationRemaining }} of {{ $freeRegistrationLink->registration_limit }} registrations remaining. Expires {{ $freeRegistrationLink->expires_at->format('d M Y, H:i') }}.
+                    </div>
+                @endif
                 <div class="share-tools mt-5">
                     <span class="text-xs font-semibold uppercase tracking-[0.2em] text-plum/60">Share checkout</span>
                     <button type="button" data-share-url="{{ request()->fullUrl() }}" data-share-title="Buy tickets for {{ $event->title }}" class="rounded-full border border-[#e27f7f] px-4 py-2 text-xs font-semibold text-[#e27f7f] transition hover:bg-[#e27f7f] hover:text-white">Share / copy payment link</button>
@@ -28,6 +46,9 @@
 
                 <form method="POST" action="{{ request()->getHost() === 'events.thestellarsurge.com' ? route('events.purchase', ['slug' => $event->slug]) : (str_starts_with(request()->getRequestUri(), '/thestellarsurge/public') ? route('events.purchase.path', ['slug' => $event->slug]) : route('events.purchase.local', ['slug' => $event->slug])) }}" class="mt-8 space-y-5">
                     @csrf
+                    @if ($freeRegistrationLink)
+                        <input type="hidden" name="free_access" value="{{ $freeAccessToken }}" />
+                    @endif
 
                     <div>
                         <label for="name" class="mb-2 block text-sm font-medium text-plum">Full name</label>
@@ -38,15 +59,15 @@
                         <label for="ticket_type" class="mb-2 block text-sm font-medium text-plum">Ticket category</label>
                         <select id="ticket_type" name="ticket_type" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum">
                             @foreach ($event->ticketOptions() as $ticketOption)
-                                <option value="{{ $ticketOption['slug'] }}" data-price="{{ $ticketOption['price'] }}">{{ $ticketOption['name'] }} — {{ $ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency }}</option>
+                                <option value="{{ $ticketOption['slug'] }}" data-price="{{ $freeRegistrationLink ? 0 : $ticketOption['price'] }}">{{ $ticketOption['name'] }} — {{ $freeRegistrationLink ? 'Complimentary' : ($ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency) }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div>
                         <label for="quantity" class="mb-2 block text-sm font-medium text-plum">Number of tickets</label>
-                        <input id="quantity" name="quantity" type="number" min="1" max="10" value="1" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum" />
-                        <p class="mt-2 text-xs text-charcoal/60">You can purchase up to 10 tickets in one order.</p>
+                        <input id="quantity" name="quantity" type="number" min="1" max="{{ $freeRegistrationLink ? min(10, $freeRegistrationRemaining) : 10 }}" value="1" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum" />
+                        <p class="mt-2 text-xs text-charcoal/60">{{ $freeRegistrationLink ? 'Up to ' . min(10, $freeRegistrationRemaining) . ' complimentary tickets can be registered at once.' : 'You can purchase up to 10 tickets in one order.' }}</p>
                     </div>
 
                     <div>
@@ -63,7 +84,7 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">{{ $event->isFree() ? 'Complete free registration' : 'Continue to secure payment' }}</button>
+                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">{{ $freeRegistrationLink || $event->isFree() ? 'Complete free registration' : 'Continue to secure payment' }}</button>
                 </form>
             </div>
 
@@ -84,7 +105,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-4 border-t border-plum/10 pt-4 text-base font-semibold text-plum">
                         <span>Total</span>
-                        <span data-order-total>{{ $event->ticketOptions()[0]['price'] === 0 ? 'Free' : number_format($event->ticketOptions()[0]['price']) . ' ' . $event->currency }}</span>
+                        <span data-order-total>{{ $freeRegistrationLink || $event->ticketOptions()[0]['price'] === 0 ? 'Free' : number_format($event->ticketOptions()[0]['price']) . ' ' . $event->currency }}</span>
                     </div>
                 </div>
             </aside>
