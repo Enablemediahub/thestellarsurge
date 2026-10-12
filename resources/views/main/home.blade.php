@@ -6,7 +6,7 @@
         $isLocalHost = in_array(request()->getHost(), ['localhost', '127.0.0.1']) || $isPublicPathPortal;
         $publicBaseUrl = request()->getSchemeAndHttpHost() . ($isPublicPathPortal ? '/thestellarsurge/public' : '');
         $productionBaseUrl = 'https://thestellarsurge.com';
-        $eventsPortalUrl = $isLocalHost ? $publicBaseUrl . '/events' : $productionBaseUrl . '/events';
+        $eventsPortalUrl = $isLocalHost ? $publicBaseUrl . '/events' : 'https://events.thestellarsurge.com';
         $entrepreneurshipPortalUrl = $isLocalHost ? $publicBaseUrl . '/event_planning' : $productionBaseUrl . '/event_planning';
         $trainingPortalUrl = $isLocalHost ? $publicBaseUrl . '/training' : $productionBaseUrl . '/training';
         $consultationUrl = $isLocalHost ? $publicBaseUrl . '/consultation' : $productionBaseUrl . '/consultation';
