@@ -223,6 +223,41 @@ class EventsPageTest extends TestCase
             ->assertSee('Regular');
     }
 
+    public function test_ticket_pdf_includes_a_clickable_google_maps_link_when_available(): void
+    {
+        $event = Event::create([
+            'title' => 'Maps Ticket Event',
+            'slug' => 'maps-ticket-event',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'location_url' => 'https://maps.google.com/?q=Accra',
+            'price' => 250,
+            'currency' => 'GHS',
+        ]);
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'reference' => 'TCK-MAP123',
+            'email' => 'guest@example.com',
+            'name' => 'Map Guest',
+            'amount' => 250,
+            'currency' => 'GHS',
+            'status' => 'paid',
+        ]);
+
+        $pdfHtml = view('events.ticket-pdf', ['tickets' => collect([$ticket->load('event')])])->render();
+
+        $this->assertStringContainsString(
+            '<a class="map-link" href="https://maps.google.com/?q=Accra">Open in Google Maps</a>',
+            $pdfHtml,
+        );
+
+        $emailHtml = view('emails.ticket-issued', ['tickets' => collect([$ticket->load('event')])])->render();
+        $this->assertStringContainsString(
+            '<a href="https://maps.google.com/?q=Accra">Open Maps Ticket Event in Google Maps</a>',
+            $emailHtml,
+        );
+    }
+
     public function test_checkout_requires_whatsapp_confirmation(): void
     {
         Event::create([

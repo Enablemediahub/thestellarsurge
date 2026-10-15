@@ -15,7 +15,11 @@
             @if ($tickets->isNotEmpty())
                 <div class="mt-6 rounded-2xl bg-[#fdfaf5] p-4 text-left text-sm text-charcoal/80">
                     <p class="font-semibold text-plum">{{ $tickets->count() }} ticket(s) issued</p>
-                    <p class="mt-2">Your PDF ticket has been sent to {{ $tickets->first()->email }}.</p>
+                    @if (session('ticket_email_failed'))
+                        <p class="mt-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900">Your registration is confirmed, but we could not deliver the ticket email. Download your ticket below and check back after the organizer verifies your email address.</p>
+                    @else
+                        <p class="mt-2">Your PDF ticket has been sent to {{ $tickets->first()->email }}.</p>
+                    @endif
                     <div class="mt-4 rounded-xl border-2 border-gold bg-gold/10 p-4 text-center">
                         <p class="text-base font-bold uppercase tracking-[0.12em] text-plum">Download your ticket now</p>
                         <p class="mt-1 text-xs text-charcoal/75">Keep the PDF ready for entry at the event.</p>

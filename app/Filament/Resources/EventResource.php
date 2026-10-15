@@ -175,28 +175,6 @@ class EventResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
                     ->money(fn (Event $record) => $record->currency),
-                Tables\Columns\TextColumn::make('complimentary_registration_link')
-                    ->label('Active complimentary link')
-                    ->state(function (Event $record): string {
-                        $link = $record->activeFreeRegistrationLink();
-
-                        if (! $link) {
-                            return 'No active link';
-                        }
-
-                        if (! $link->encrypted_token) {
-                            return 'Generate a fresh link from Edit Event';
-                        }
-
-                        return route('events.checkout', [
-                            'slug' => $record->slug,
-                            'free_access' => $link->encrypted_token,
-                        ]);
-                    })
-                    ->copyable(fn (string $state): bool => filter_var($state, FILTER_VALIDATE_URL) !== false)
-                    ->copyMessage('Complimentary registration link copied')
-                    ->copyMessageDuration(1500)
-                    ->wrap(),
                 Tables\Columns\IconColumn::make('is_published')
                     ->boolean(),
                 Tables\Columns\IconColumn::make('featured')

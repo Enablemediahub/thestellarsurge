@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class Ticket extends Model
 {
@@ -70,6 +71,14 @@ class Ticket extends Model
     public function getFormattedPhoneAttribute(): ?string
     {
         return static::normalizePhone($this->phone);
+    }
+
+    public function getTicketTypeNameAttribute(): string
+    {
+        $option = collect($this->event?->ticketOptions() ?? [])
+            ->firstWhere('slug', $this->ticket_type);
+
+        return $option['name'] ?? Str::of($this->ticket_type)->replace('-', ' ')->title()->toString();
     }
 
     public function event(): BelongsTo

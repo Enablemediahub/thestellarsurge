@@ -18,6 +18,7 @@
         h1 { color: #32152F; font-size: 22pt; line-height: 1.1; margin: 10pt 0 9pt; }
         .meta { font-size: 9pt; line-height: 1.35; }
         .meta-label { color: #777174; font-size: 5.5pt; font-weight: bold; letter-spacing: .7pt; text-transform: uppercase; }
+        .map-link { color: #32152F; font-size: 8pt; font-weight: bold; text-decoration: underline; }
         .price-box { margin-top: 9pt; padding: 7pt 11pt; border-left: 4pt solid #C8A46A; background: #f2e8d8; }
         .price-label { color: #6d5a3e; font-size: 5.5pt; font-weight: bold; letter-spacing: .9pt; }
         .price { color: #32152F; font-size: 18pt; font-weight: bold; margin-top: 2pt; }
@@ -54,6 +55,9 @@
                                 <span class="meta-label">Guest</span><br>{{ $ticket->name }}<br>
                                 <span class="meta-label">Date &amp; time</span><br>{{ $ticket->event->start_at->format('d M Y, h:i A') }}<br>
                                 <span class="meta-label">Location</span><br>{{ $ticket->event->location }}
+                                @if ($ticket->event->location_url)
+                                    <br><a class="map-link" href="{{ $ticket->event->location_url }}">Open in Google Maps</a>
+                                @endif
                             </div>
                             <div class="price-box">
                                 <div class="price-label">TICKET PRICE</div>
@@ -71,7 +75,7 @@
                         </td>
                     </tr>
                 </table>
-                <div class="footer">{{ str($ticket->ticket_type)->replace('-', ' ')->title() }} &nbsp;|&nbsp; KEEP THIS PASS SAFE</div>
+                <div class="footer">{{ $ticket->ticket_type_name }} &nbsp;|&nbsp; KEEP THIS PASS SAFE</div>
             </div>
         </section>
     @endforeach

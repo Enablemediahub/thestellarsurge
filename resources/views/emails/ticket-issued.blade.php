@@ -8,7 +8,10 @@
 
 <ul>
     @foreach ($tickets as $ticket)
-        <li>{{ $ticket->event->title }} - {{ $ticket->reference }}</li>
+        <li>{{ $ticket->event->title }} - {{ $ticket->ticket_type_name }} - {{ $ticket->reference }}</li>
+        @if ($ticket->event->location_url)
+            <li><a href="{{ $ticket->event->location_url }}">Open {{ $ticket->event->title }} in Google Maps</a></li>
+        @endif
     @endforeach
 </ul>
 

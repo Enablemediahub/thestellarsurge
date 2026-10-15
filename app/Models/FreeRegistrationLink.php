@@ -11,6 +11,9 @@ class FreeRegistrationLink extends Model
     protected $fillable = [
         'event_id',
         'created_by',
+        'group_name',
+        'root_link_id',
+        'generation',
         'token_hash',
         'encrypted_token',
         'registration_limit',
@@ -21,8 +24,8 @@ class FreeRegistrationLink extends Model
     protected $casts = [
         'registration_limit' => 'integer',
         'registrations_used' => 'integer',
+        'generation' => 'integer',
         'expires_at' => 'datetime',
-        'encrypted_token' => 'encrypted',
     ];
 
     public function event(): BelongsTo
@@ -33,6 +36,16 @@ class FreeRegistrationLink extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function rootLink(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'root_link_id');
+    }
+
+    public function generations(): HasMany
+    {
+        return $this->hasMany(self::class, 'root_link_id');
     }
 
     public function tickets(): HasMany

@@ -18,6 +18,8 @@ use Illuminate\Validation\ValidationException;
 use Unicodeveloper\Paystack\Facades\Paystack;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\TicketSecurityService;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class EventController extends Controller
 {
@@ -207,12 +209,12 @@ class EventController extends Controller
         });
 
         if ($ticketPrice === 0) {
-            $this->settlePayment($payment, 'success', $request);
+            $emailSent = $this->settlePayment($payment, 'success', $request);
 
             return redirect()->route($this->successRouteName($request), [
                 'slug' => $event->slug,
                 'reference' => $paymentReference,
-            ]);
+            ])->with('ticket_email_failed', ! $emailSent);
         }
 
         $data = [
@@ -232,12 +234,12 @@ class EventController extends Controller
         ];
 
         if (config('services.paystack.mode') === 'demo' && ! app()->environment('production')) {
-            $this->settlePayment($payment, 'success', $request);
+            $emailSent = $this->settlePayment($payment, 'success', $request);
 
             return redirect()->route($this->successRouteName($request), [
                 'slug' => $event->slug,
                 'reference' => $paymentReference,
-            ]);
+            ])->with('ticket_email_failed', ! $emailSent);
         }
 
         return Paystack::getAuthorizationUrl($data)->redirectNow();
@@ -259,9 +261,12 @@ class EventController extends Controller
         $paymentData = Paystack::getPaymentData();
 
         $status = data_get($paymentData, 'data.status', 'failed');
-        $this->settlePayment($payment, $status === 'success' ? 'success' : 'failed', $request);
+        $emailSent = $this->settlePayment($payment, $status === 'success' ? 'success' : 'failed', $request);
 
-        return redirect()->route($this->successRouteName($request), ['slug' => $payment->event?->slug ?? 'event', 'reference' => $reference]);
+        return redirect()->route($this->successRouteName($request), [
+            'slug' => $payment->event?->slug ?? 'event',
+            'reference' => $reference,
+        ])->with('ticket_email_failed', ! $emailSent);
     }
 
     public function success(string $slug, Request $request)
@@ -391,7 +396,7 @@ class EventController extends Controller
         return $link;
     }
 
-    private function settlePayment(Payment $payment, string $status, Request $request): void
+    private function settlePayment(Payment $payment, string $status, Request $request): bool
     {
         $wasSuccessful = $payment->status === 'success';
         $payment->update([
@@ -407,7 +412,7 @@ class EventController extends Controller
         }
 
         if ($status !== 'success' || $wasSuccessful) {
-            return;
+            return true;
         }
 
         $tickets = Ticket::query()
@@ -422,12 +427,27 @@ class EventController extends Controller
         }
 
         if ($tickets->isNotEmpty()) {
-            Mail::to($tickets->first()->email)->send(new TicketIssued($tickets));
+            $emailSent = true;
+
+            try {
+                Mail::to($tickets->first()->email)->send(new TicketIssued($tickets));
+            } catch (TransportExceptionInterface $exception) {
+                Log::error('Ticket confirmation email delivery failed.', [
+                    'payment_reference' => $payment->reference,
+                    'exception' => $exception->getMessage(),
+                ]);
+
+                $emailSent = false;
+            }
 
             foreach ($tickets as $ticket) {
                 app(TicketDeliveryService::class)->sendWhatsApp($ticket);
             }
+
+            return $emailSent;
         }
+
+        return true;
     }
 
     private function successRouteName(Request $request): string

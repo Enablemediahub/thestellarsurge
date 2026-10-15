@@ -24,9 +24,22 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('ticket'))
             ->columns([
                 Tables\Columns\TextColumn::make('reference')->searchable()->copyable(),
                 Tables\Columns\TextColumn::make('event.title')->searchable(),
+                Tables\Columns\TextColumn::make('ticket.name')
+                    ->label('Customer')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('ticket.email')
+                    ->label('Customer email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('metadata.ticket_type_name')
+                    ->label('Ticket type')
+                    ->placeholder('—'),
+                Tables\Columns\TextColumn::make('metadata.quantity')
+                    ->label('Quantity')
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('amount')->money(fn (Payment $record) => $record->currency),
                 Tables\Columns\BadgeColumn::make('status')->colors([
                     'warning' => 'pending',
