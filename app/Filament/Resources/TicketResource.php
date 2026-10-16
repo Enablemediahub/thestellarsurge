@@ -3,15 +3,20 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TicketResource\Pages;
+use App\Mail\TicketIssued;
 use App\Models\Event;
 use App\Models\Ticket;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class TicketResource extends Resource
 {
@@ -100,6 +105,49 @@ class TicketResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
+                Tables\Actions\BulkAction::make('resendTicketEmails')
+                    ->label('Resend ticket emails')
+                    ->icon('heroicon-o-envelope')
+                    ->requiresConfirmation()
+                    ->modalDescription('Resend ticket PDFs to the email addresses on selected paid tickets.')
+                    ->action(function ($records): void {
+                        $eligibleTickets = $records->filter(
+                            fn (Ticket $ticket): bool => $ticket->status === 'paid'
+                                && filter_var($ticket->email, FILTER_VALIDATE_EMAIL) !== false,
+                        );
+                        $skippedCount = $records->count() - $eligibleTickets->count();
+                        $failedCount = 0;
+                        $sentCount = 0;
+
+                        foreach ($eligibleTickets->groupBy(fn (Ticket $ticket): string => mb_strtolower($ticket->email)) as $tickets) {
+                            $tickets->loadMissing('event');
+
+                            try {
+                                Mail::to($tickets->first()->email)->send(new TicketIssued($tickets));
+                                $sentCount++;
+                            } catch (TransportExceptionInterface $exception) {
+                                $failedCount++;
+
+                                Log::error('Ticket email resend failed from admin.', [
+                                    'ticket_references' => $tickets->pluck('reference')->all(),
+                                    'exception' => $exception->getMessage(),
+                                ]);
+                            }
+                        }
+
+                        $notification = Notification::make()
+                            ->title('Ticket email resend complete')
+                            ->body("Sent to {$sentCount} recipient(s); {$failedCount} delivery failure(s); {$skippedCount} unpaid ticket(s) or invalid email address(es) skipped.");
+
+                        if ($failedCount > 0 || $skippedCount > 0) {
+                            $notification->warning();
+                        } else {
+                            $notification->success();
+                        }
+
+                        $notification->send();
+                    })
+                    ->deselectRecordsAfterCompletion(),
                 Tables\Actions\BulkAction::make('exportExcel')
                     ->label('Export to Excel')
                     ->icon('heroicon-o-table-cells')

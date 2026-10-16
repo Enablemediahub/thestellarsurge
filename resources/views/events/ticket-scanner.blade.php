@@ -70,6 +70,7 @@
             const scannerStart = document.querySelector('[data-scanner-start]');
             const scannerStop = document.querySelector('[data-scanner-stop]');
             const scannerToken = document.querySelector('[data-scanner-token]');
+            const scannerAccessToken = @js($scannerAccessToken);
             let scannerStream;
             let scannerFrame;
 
@@ -90,6 +91,7 @@
                         const scannerPath = window.location.pathname.replace(/\/tickets\/?$/, '/tickets/verify');
                         const verificationUrl = new URL(window.location.origin + scannerPath);
                         verificationUrl.search = url.search;
+                        verificationUrl.searchParams.set('scanner_access', scannerAccessToken);
                         window.location.href = verificationUrl.href;
                         return;
                     }

@@ -8,15 +8,18 @@ use App\Filament\Resources\FreeRegistrationLinkResource\Pages\ListFreeRegistrati
 use App\Filament\Resources\PaymentResource\Pages\ListPayments;
 use App\Filament\Resources\TicketResource;
 use App\Filament\Resources\TicketResource\Pages\ListTickets;
+use App\Mail\TicketIssued;
 use App\Models\Event;
 use App\Models\FreeRegistrationLink;
 use App\Models\Payment;
+use App\Models\SiteSetting;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\FreeRegistrationLinkService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -99,6 +102,75 @@ class EventSalesAdminTest extends TestCase
             ->assertTableActionExists('delete', record: $ticket)
             ->assertTableBulkActionExists('delete')
             ->assertTableBulkActionDoesNotExist('sendWhatsApp');
+    }
+
+    public function test_admin_can_bulk_resend_ticket_emails_to_paid_ticket_recipients(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create();
+        $event = $this->makeEvent();
+        $firstTicket = Ticket::create([
+            'event_id' => $event->id,
+            'reference' => 'TCK-'.strtoupper(Str::random(12)),
+            'email' => 'buyer@example.com',
+            'name' => 'Ticket Buyer',
+            'ticket_type' => 'single',
+            'amount' => 100,
+            'currency' => 'GHS',
+            'status' => 'paid',
+        ]);
+        $secondTicket = Ticket::create([
+            'event_id' => $event->id,
+            'reference' => 'TCK-'.strtoupper(Str::random(12)),
+            'email' => 'buyer@example.com',
+            'name' => 'Ticket Buyer',
+            'ticket_type' => 'single',
+            'amount' => 100,
+            'currency' => 'GHS',
+            'status' => 'paid',
+        ]);
+        $unpaidTicket = Ticket::create([
+            'event_id' => $event->id,
+            'reference' => 'TCK-'.strtoupper(Str::random(12)),
+            'email' => 'unpaid@example.com',
+            'name' => 'Unpaid Buyer',
+            'ticket_type' => 'single',
+            'amount' => 100,
+            'currency' => 'GHS',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(ListTickets::class)
+            ->callTableBulkAction('resendTicketEmails', [$firstTicket, $secondTicket, $unpaidTicket])
+            ->assertNotified('Ticket email resend complete');
+
+        Mail::assertSent(TicketIssued::class, fn (TicketIssued $mail): bool => $mail->hasTo('buyer@example.com')
+            && $mail->tickets->count() === 2);
+        Mail::assertSent(TicketIssued::class, 1);
+    }
+
+    public function test_ticket_list_has_scanner_settings_action_that_saves_the_portal_toggle(): void
+    {
+        $admin = User::factory()->create();
+        SiteSetting::create([
+            'site_name' => 'Stellar Surge',
+            'ticket_scanner_enabled' => true,
+        ]);
+        $this->actingAs($admin);
+
+        Livewire::test(ListTickets::class)
+            ->assertActionExists('ticketScannerSettings')
+            ->mountAction('ticketScannerSettings')
+            ->assertSee('Enable ticket scanner portal')
+            ->assertSee('Ticket scanner portal URL')
+            ->assertSee('/events/tickets/')
+            ->setActionData(['ticket_scanner_enabled' => false])
+            ->callMountedAction()
+            ->assertNotified('Ticket scanner settings saved');
+
+        $this->assertFalse(SiteSetting::current()->ticket_scanner_enabled);
     }
 
     public function test_event_list_handles_a_link_encrypted_with_an_unavailable_key(): void

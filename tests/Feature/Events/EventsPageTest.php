@@ -350,17 +350,40 @@ class EventsPageTest extends TestCase
 
         $this->get('/events/tickets/verify?token=' . urlencode($token))
             ->assertOk()
+            ->assertSee('Scanner portal required');
+        $this->assertFalse($ticket->fresh()->verified);
+
+        $this->get('/events/tickets/')->assertOk();
+        $scannerAccessToken = session('ticket_scanner_access_token');
+
+        $this->get('/events/tickets/verify?token=' . urlencode($token))
+            ->assertOk()
+            ->assertSee('Scanner portal required');
+        $this->assertFalse($ticket->fresh()->verified);
+
+        $verificationUrl = '/events/tickets/verify?'.http_build_query([
+            'token' => $token,
+            'scanner_access' => $scannerAccessToken,
+        ]);
+
+        $this->get($verificationUrl)
+            ->assertOk()
             ->assertSee('Authentic paid ticket')
             ->assertSee('Verify ticket for entry');
 
-        $this->post('/events/tickets/verify', ['token' => $token])
+        $this->assertFalse($ticket->fresh()->verified);
+
+        $this->post('/events/tickets/verify', [
+            'token' => $token,
+            'scanner_access' => $scannerAccessToken,
+        ])
             ->assertRedirect();
 
         $ticket->refresh();
         $this->assertTrue($ticket->verified);
         $this->assertNotNull($ticket->verified_at);
 
-        $this->get('/events/tickets/verify?token=' . urlencode($token))
+        $this->get($verificationUrl)
             ->assertOk()
             ->assertSee('Already verified');
     }
@@ -410,6 +433,51 @@ class EventsPageTest extends TestCase
         SiteSetting::query()->update(['ticket_scanner_enabled' => false]);
 
         $this->get('/events/tickets/')->assertNotFound();
+    }
+
+    public function test_disabling_scanner_blocks_existing_scanner_sessions_and_ticket_verification(): void
+    {
+        $setting = SiteSetting::create([
+            'site_name' => 'Stellar Surge',
+            'ticket_scanner_enabled' => true,
+        ]);
+        $event = Event::create([
+            'title' => 'Disabled Scanner Event',
+            'slug' => 'disabled-scanner-event',
+            'summary' => 'Event for scanner disable test.',
+            'description' => 'Event for scanner disable test.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 250,
+            'currency' => 'GHS',
+        ]);
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'reference' => 'TCK-DISABLED123',
+            'email' => 'guest@example.com',
+            'name' => 'Guest',
+            'phone' => '+233240000000',
+            'whatsapp_confirmed' => true,
+            'amount' => 250,
+            'currency' => 'GHS',
+            'status' => 'paid',
+        ]);
+        $token = app(TicketSecurityService::class)->payloadFor($ticket);
+
+        $this->get('/events/tickets/')->assertOk();
+        $scannerAccessToken = session('ticket_scanner_access_token');
+        $setting->update(['ticket_scanner_enabled' => false]);
+
+        $this->get('/events/tickets/verify?'.http_build_query([
+            'token' => $token,
+            'scanner_access' => $scannerAccessToken,
+        ]))->assertNotFound();
+        $this->post('/events/tickets/verify', [
+            'token' => $token,
+            'scanner_access' => $scannerAccessToken,
+        ])->assertNotFound();
+        $this->assertFalse($ticket->fresh()->verified);
     }
 
     public function test_event_gallery_supports_categories_likes_and_moderated_comments(): void

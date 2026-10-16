@@ -160,18 +160,6 @@ class SiteSettingResource extends Resource
                         Forms\Components\Textarea::make('footer_credit')
                             ->rows(2)
                             ->columnSpanFull(),
-                        Forms\Components\Toggle::make('ticket_scanner_enabled')
-                            ->label('Enable ticket scanner portal')
-                            ->helperText('Allows ushers to open the phone camera scanner at /events/tickets/.')
-                            ->default(true),
-                        Forms\Components\TextInput::make('ticket_scanner_url')
-                            ->label('Ticket scanner portal URL')
-                            ->formatStateUsing(fn (): string => request()->getHost() === 'thestellarsurge.com'
-                                ? 'https://events.thestellarsurge.com/tickets/'
-                                : route('events.ticket.scanner.local'))
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->helperText('Select this URL and copy it into WhatsApp or send it directly to the ushers.'),
                     ])->columns(2),
             ]);
     }

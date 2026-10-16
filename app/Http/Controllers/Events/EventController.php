@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\FreeRegistrationLink;
 use App\Models\Payment;
+use App\Models\SiteSetting;
 use App\Models\Ticket;
 use App\Models\EventGalleryComment;
 use App\Mail\TicketIssued;
@@ -99,13 +100,17 @@ class EventController extends Controller
         return view('events.checkout', compact('event', 'freeAccessToken', 'freeRegistrationLink', 'freeRegistrationRemaining'));
     }
 
-    public function ticketScanner()
+    public function ticketScanner(Request $request)
     {
-        abort_unless(\App\Models\SiteSetting::current()->ticket_scanner_enabled, 404);
+        $this->ensureTicketScannerEnabled($request);
 
-        session(['ticket_scanner_authorized' => true]);
+        $scannerAccessToken = Str::random(40);
+        $request->session()->put([
+            'ticket_scanner_authorized' => true,
+            'ticket_scanner_access_token' => $scannerAccessToken,
+        ]);
 
-        return view('events.ticket-scanner');
+        return view('events.ticket-scanner', compact('scannerAccessToken'));
     }
 
     public function purchase(Request $request, string $slug)
@@ -298,11 +303,15 @@ class EventController extends Controller
 
     public function verifyTicket(Request $request)
     {
-        if (! $request->session()->get('ticket_scanner_authorized', false)) {
+        $this->ensureTicketScannerEnabled($request);
+
+        $scannerAccessToken = (string) $request->query('scanner_access', '');
+        if (! $this->scannerRequestAuthorized($request, $scannerAccessToken)) {
             return view('events.verify-ticket', [
                 'ticket' => null,
                 'claims' => null,
                 'token' => null,
+                'scannerAccessToken' => null,
                 'scannerRequired' => true,
                 'scannerUrl' => $this->scannerRoute($request),
             ]);
@@ -311,7 +320,6 @@ class EventController extends Controller
         $token = (string) $request->query('token');
         $claims = $token ? app(TicketSecurityService::class)->verify($token) : null;
         $ticket = null;
-        $autoVerified = false;
 
         if ($claims && is_numeric($claims['ticket_id'] ?? null)) {
             $ticket = Ticket::query()->with('event')->find($claims['ticket_id']);
@@ -321,33 +329,22 @@ class EventController extends Controller
             }
         }
 
-        if ($ticket?->status === 'paid' && ! $ticket->verified) {
-            $verifiedAt = now();
-            $updated = Ticket::query()
-                ->whereKey($ticket->id)
-                ->where('verified', false)
-                ->update([
-                    'verified' => true,
-                    'verified_at' => $verifiedAt,
-                    'updated_at' => $verifiedAt,
-                ]);
-            $ticket->refresh();
-            $autoVerified = $updated === 1;
-        }
-
         return view('events.verify-ticket', [
             'ticket' => $ticket,
             'claims' => $claims,
             'token' => $token,
+            'scannerAccessToken' => $scannerAccessToken,
             'scannerRequired' => false,
             'scannerUrl' => $this->scannerRoute($request),
-            'autoVerified' => $autoVerified,
         ]);
     }
 
     public function confirmTicket(Request $request)
     {
-        if (! $request->session()->get('ticket_scanner_authorized', false)) {
+        $this->ensureTicketScannerEnabled($request);
+
+        $scannerAccessToken = (string) $request->input('scanner_access', '');
+        if (! $this->scannerRequestAuthorized($request, $scannerAccessToken)) {
             return redirect($this->scannerRoute($request))->with('verification_error', 'Open the official ticket scanner before scanning a ticket.');
         }
 
@@ -368,7 +365,10 @@ class EventController extends Controller
             ])->save();
         }
 
-        return redirect()->route($this->verificationRouteName($request), ['token' => $token]);
+        return redirect()->route($this->verificationRouteName($request), [
+            'token' => $token,
+            'scanner_access' => $scannerAccessToken,
+        ]);
     }
 
     private function scannerRoute(Request $request): string
@@ -378,6 +378,24 @@ class EventController extends Controller
             : (str_starts_with($request->getRequestUri(), '/thestellarsurge/public') ? 'events.ticket.scanner.path' : 'events.ticket.scanner.local');
 
         return route($routeName);
+    }
+
+    private function ensureTicketScannerEnabled(Request $request): void
+    {
+        if (! SiteSetting::current()->ticket_scanner_enabled) {
+            $request->session()->forget(['ticket_scanner_authorized', 'ticket_scanner_access_token']);
+            abort(404);
+        }
+    }
+
+    private function scannerRequestAuthorized(Request $request, string $scannerAccessToken): bool
+    {
+        $sessionToken = (string) $request->session()->get('ticket_scanner_access_token', '');
+
+        return $request->session()->get('ticket_scanner_authorized', false)
+            && $sessionToken !== ''
+            && $scannerAccessToken !== ''
+            && hash_equals($sessionToken, $scannerAccessToken);
     }
 
     private function findAvailableFreeRegistrationLink(Event $event, string $token): ?FreeRegistrationLink
