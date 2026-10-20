@@ -52,7 +52,14 @@
                         @foreach ($event->ticketOptions() as $ticketOption)
                             <div class="flex items-center justify-between gap-4 rounded-xl border border-[#eadfcf] bg-white px-4 py-3">
                                 <span class="font-semibold text-plum">{{ $ticketOption['name'] }}</span>
-                                <span class="text-sm font-semibold text-charcoal">{{ $ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency }}</span>
+                                @if ($ticketOption['is_discounted'])
+                                    <span class="text-right text-sm">
+                                        <del class="block text-charcoal/50">{{ number_format($ticketOption['original_price']) }} {{ $event->currency }}</del>
+                                        <strong class="text-[#d36d6d]">{{ number_format($ticketOption['price']) }} {{ $event->currency }}</strong>
+                                    </span>
+                                @else
+                                    <span class="text-sm font-semibold text-charcoal">{{ $ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency }}</span>
+                                @endif
                             </div>
                         @endforeach
                     </div>

@@ -223,6 +223,58 @@ class EventsPageTest extends TestCase
             ->assertSee('Regular');
     }
 
+    public function test_discounted_ticket_prices_are_shown_and_charged_at_the_discounted_amount(): void
+    {
+        config(['services.paystack.mode' => 'demo']);
+        Mail::fake();
+
+        $event = Event::create([
+            'title' => 'Discounted Ticket Event',
+            'slug' => 'discounted-ticket-event',
+            'summary' => 'A ticketed event on sale.',
+            'start_at' => '2026-10-20 18:00:00',
+            'location' => 'Accra, Ghana',
+            'is_published' => true,
+            'price' => 600,
+            'ticket_options' => [
+                ['name' => 'Regular', 'price' => 500, 'discount_price' => 400],
+                ['name' => 'VIP', 'price' => 900],
+            ],
+            'currency' => 'GHS',
+        ]);
+
+        $this->get('/events')
+            ->assertOk()
+            ->assertSee('<del class="ml-1 text-charcoal/50">500 GHS</del>', false)
+            ->assertSee('<strong class="ml-1 text-[#d36d6d]">400 GHS</strong>', false);
+
+        $this->get('/events/'.$event->slug)
+            ->assertOk()
+            ->assertSee('<del class="block text-charcoal/50">500 GHS</del>', false)
+            ->assertSee('<strong class="text-[#d36d6d]">400 GHS</strong>', false);
+
+        $this->get('/events/'.$event->slug.'/checkout')
+            ->assertOk()
+            ->assertSee('Was 500 GHS, now 400 GHS')
+            ->assertSee('data-price="400"', false);
+
+        $response = $this->post('/events/'.$event->slug.'/checkout', [
+            'name' => 'Discount Buyer',
+            'email' => 'discount-buyer@example.com',
+            'phone' => '+233240000000',
+            'whatsapp_confirmed' => 1,
+            'quantity' => 1,
+            'ticket_type' => 'regular',
+        ]);
+
+        $payment = Payment::query()->where('event_id', $event->id)->firstOrFail();
+        $ticket = Ticket::query()->where('event_id', $event->id)->firstOrFail();
+
+        $this->assertSame(400, $payment->amount);
+        $this->assertSame(400, $ticket->amount);
+        $response->assertRedirect(route('events.success.local', ['slug' => $event->slug, 'reference' => $payment->reference]));
+    }
+
     public function test_ticket_pdf_includes_a_clickable_google_maps_link_when_available(): void
     {
         $event = Event::create([

@@ -59,9 +59,13 @@
                         <label for="ticket_type" class="mb-2 block text-sm font-medium text-plum">Ticket category</label>
                         <select id="ticket_type" name="ticket_type" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum">
                             @foreach ($event->ticketOptions() as $ticketOption)
-                                <option value="{{ $ticketOption['slug'] }}" data-price="{{ $freeRegistrationLink ? 0 : $ticketOption['price'] }}">{{ $ticketOption['name'] }} — {{ $freeRegistrationLink ? 'Complimentary' : ($ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency) }}</option>
+                                <option value="{{ $ticketOption['slug'] }}" data-price="{{ $freeRegistrationLink ? 0 : $ticketOption['price'] }}" data-original-price="{{ $ticketOption['original_price'] }}" data-discounted="{{ $ticketOption['is_discounted'] ? 'true' : 'false' }}">{{ $ticketOption['name'] }} — {{ $freeRegistrationLink ? 'Complimentary' : ($ticketOption['is_discounted'] ? 'Was ' . number_format($ticketOption['original_price']) . ' ' . $event->currency . ', now ' . number_format($ticketOption['price']) . ' ' . $event->currency : ($ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency)) }}</option>
                             @endforeach
                         </select>
+                        <p class="mt-2 flex items-baseline gap-2 text-sm">
+                            <del data-ticket-original class="text-charcoal/50 {{ $event->ticketOptions()[0]['is_discounted'] && ! $freeRegistrationLink ? '' : 'hidden' }}">{{ number_format($event->ticketOptions()[0]['original_price']) }} {{ $event->currency }}</del>
+                            <strong data-ticket-active class="text-[#d36d6d]">{{ $freeRegistrationLink ? 'Complimentary' : ($event->ticketOptions()[0]['price'] === 0 ? 'Free' : number_format($event->ticketOptions()[0]['price']) . ' ' . $event->currency) }}</strong>
+                        </p>
                     </div>
 
                     <div>
@@ -117,11 +121,20 @@
             const ticketType = document.querySelector('#ticket_type');
             const quantity = document.querySelector('#quantity');
             const orderTotal = document.querySelector('[data-order-total]');
+            const ticketOriginal = document.querySelector('[data-ticket-original]');
+            const ticketActive = document.querySelector('[data-ticket-active]');
             const currency = '{{ $event->currency }}';
             const updateTotal = () => {
-                const price = Number(ticketType?.selectedOptions[0]?.dataset.price || 0);
+                const selectedTicket = ticketType?.selectedOptions[0];
+                const price = Number(selectedTicket?.dataset.price || 0);
                 const count = Number(quantity?.value || 1);
                 orderTotal.textContent = `${(price * count).toLocaleString()} ${currency}`;
+                if (ticketOriginal && ticketActive && selectedTicket) {
+                    const isDiscounted = selectedTicket.dataset.discounted === 'true';
+                    ticketOriginal.textContent = `${Number(selectedTicket.dataset.originalPrice).toLocaleString()} ${currency}`;
+                    ticketOriginal.classList.toggle('hidden', !isDiscounted || price === 0);
+                    ticketActive.textContent = price === 0 ? 'Free' : `${Number(selectedTicket.dataset.price).toLocaleString()} ${currency}`;
+                }
             };
             ticketType?.addEventListener('change', updateTotal);
             quantity?.addEventListener('input', updateTotal);

@@ -6,6 +6,7 @@ use App\Filament\Resources\EventResource\Pages;
 use App\Models\Event;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -63,6 +64,12 @@ class EventResource extends Resource
                         Forms\Components\TextInput::make('price')
                             ->numeric()
                             ->helperText('Use 0 for a free registration program. Use a positive amount to require payment. Add ticket categories below to define prices.'),
+                        Forms\Components\TextInput::make('discount_price')
+                            ->label('Discount price in GHS')
+                            ->numeric()
+                            ->minValue(0)
+                            ->rules(fn (Get $get): array => ['nullable', 'numeric', 'min:0', 'lt:' . (int) $get('price')])
+                            ->helperText('Optional. Must be lower than the event price. Used when no ticket categories are set.'),
                         Forms\Components\Repeater::make('ticket_options')
                             ->label('Ticket categories and prices')
                             ->schema([
@@ -75,11 +82,17 @@ class EventResource extends Resource
                                     ->numeric()
                                     ->required()
                                     ->minValue(0),
+                                Forms\Components\TextInput::make('discount_price')
+                                    ->label('Discount price in GHS')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->rules(fn (Get $get): array => ['nullable', 'numeric', 'min:0', 'lt:' . (int) $get('price')])
+                                    ->helperText('Optional; must be lower than the ticket price.'),
                             ])
-                            ->columns(2)
+                            ->columns(3)
                             ->defaultItems(0)
                             ->columnSpanFull()
-                            ->helperText('Every category must be 0 for free registration. Any positive category price sends the attendee through payment. Leave empty to use the event price as one Standard ticket.'),
+                            ->helperText('Every category must be 0 for free registration. Any positive category price sends the attendee through payment. Leave empty to use the event price and optional discount above as one Standard ticket.'),
                         Forms\Components\Select::make('currency')
                             ->options([
                                 'GHS' => 'GHS',

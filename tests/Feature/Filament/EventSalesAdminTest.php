@@ -3,6 +3,7 @@
 namespace Tests\Feature\Filament;
 
 use App\Filament\Resources\EventResource\Pages\ListEvents;
+use App\Filament\Resources\EventResource\Pages\EditEvent;
 use App\Filament\Resources\FreeRegistrationLinkResource\Pages\EditFreeRegistrationLink;
 use App\Filament\Resources\FreeRegistrationLinkResource\Pages\ListFreeRegistrationLinks;
 use App\Filament\Resources\PaymentResource\Pages\ListPayments;
@@ -28,6 +29,34 @@ use Tests\TestCase;
 class EventSalesAdminTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_admin_can_set_event_and_category_discount_prices(): void
+    {
+        $admin = User::factory()->create();
+        $event = $this->makeEvent();
+        $this->actingAs($admin);
+
+        Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()])
+            ->fillForm([
+                'price' => 250,
+                'discount_price' => 200,
+                'ticket_options' => [
+                    ['name' => 'Single', 'price' => 100, 'discount_price' => 80],
+                    ['name' => 'Couple', 'price' => 150, 'discount_price' => 120],
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $event->refresh();
+        $this->assertSame(200, $event->discount_price);
+        $this->assertSame(80, $event->ticketOptions()[0]['price']);
+        $this->assertSame(100, $event->ticketOptions()[0]['original_price']);
+        $this->assertSame(120, $event->ticketOptions()[1]['price']);
+
+        $event->update(['ticket_options' => []]);
+        $this->assertSame(200, $event->fresh()->ticketOptions()[0]['price']);
+    }
 
     public function test_sales_tables_show_customer_and_ticket_category(): void
     {

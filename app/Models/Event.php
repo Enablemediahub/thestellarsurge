@@ -22,6 +22,7 @@ class Event extends Model
         'venue',
         'location_url',
         'price',
+        'discount_price',
         'ticket_options',
         'currency',
         'banner_image',
@@ -35,6 +36,7 @@ class Event extends Model
         'is_published' => 'boolean',
         'featured' => 'boolean',
         'price' => 'integer',
+        'discount_price' => 'integer',
         'ticket_options' => 'array',
     ];
 
@@ -93,19 +95,32 @@ class Event extends Model
     {
         $options = collect($this->ticket_options ?: [])
             ->filter(fn (array $option): bool => filled($option['name'] ?? null) && is_numeric($option['price'] ?? null))
-            ->map(fn (array $option): array => [
-                'name' => $option['name'],
-                'slug' => $option['slug'] ?? Str::slug($option['name']),
-                'price' => (int) $option['price'],
-            ])
+            ->map(fn (array $option): array => $this->formatTicketOption(
+                $option['name'],
+                $option['slug'] ?? Str::slug($option['name']),
+                (int) $option['price'],
+                $option['discount_price'] ?? null,
+            ))
             ->values()
             ->all();
 
-        return $options ?: [[
-            'name' => 'Standard',
-            'slug' => 'standard',
-            'price' => (int) $this->price,
-        ]];
+        return $options ?: [
+            $this->formatTicketOption('Standard', 'standard', (int) $this->price, $this->discount_price),
+        ];
+    }
+
+    private function formatTicketOption(string $name, string $slug, int $price, mixed $discountPrice): array
+    {
+        $discountPrice = is_numeric($discountPrice) ? (int) $discountPrice : null;
+        $isDiscounted = $discountPrice !== null && $discountPrice >= 0 && $discountPrice < $price;
+
+        return [
+            'name' => $name,
+            'slug' => $slug,
+            'original_price' => $price,
+            'price' => $isDiscounted ? $discountPrice : $price,
+            'is_discounted' => $isDiscounted,
+        ];
     }
 
     public function isFree(): bool

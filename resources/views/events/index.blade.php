@@ -94,7 +94,26 @@
                         <div class="mt-5 space-y-2 text-sm text-charcoal/80">
                             <p><strong>Date:</strong> {{ $event->start_at->format('d M Y, h:i A') }}</p>
                             <p><strong>Location:</strong> {{ $event->location }}</p>
-                            <p><strong>{{ $event->isFree() ? 'Registration:' : 'Tickets:' }}</strong> {{ $event->isFree() ? 'Free' : collect($event->ticketOptions())->map(fn (array $ticketOption) => $ticketOption['name'] . ' ' . number_format($ticketOption['price']) . ' ' . $event->currency)->join(', ') }}</p>
+                            @if ($event->isFree())
+                                <p><strong>Registration:</strong> Free</p>
+                            @else
+                                <div>
+                                    <strong>Tickets:</strong>
+                                    <ul class="mt-1 space-y-1">
+                                        @foreach ($event->ticketOptions() as $ticketOption)
+                                            <li>
+                                                {{ $ticketOption['name'] }}
+                                                @if ($ticketOption['is_discounted'])
+                                                    <del class="ml-1 text-charcoal/50">{{ number_format($ticketOption['original_price']) }} {{ $event->currency }}</del>
+                                                    <strong class="ml-1 text-[#d36d6d]">{{ number_format($ticketOption['price']) }} {{ $event->currency }}</strong>
+                                                @else
+                                                    {{ number_format($ticketOption['price']) }} {{ $event->currency }}
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                         </div>
                         <div class="mt-6 flex items-center justify-between gap-4">
                             <a href="{{ route($eventShowRoute, ['slug' => $event->slug]) }}" class="inline-flex rounded-full bg-plum px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-charcoal">View details</a>
