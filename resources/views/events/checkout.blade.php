@@ -23,7 +23,7 @@
                 <div class="mb-8 flex min-h-[18rem] items-center justify-center overflow-hidden rounded-2xl bg-[#eadfcf] p-4 md:min-h-[28rem]">
                     <img src="{{ $eventImage }}" alt="{{ $event->title }} flyer" class="max-h-[32rem] w-full object-contain" />
                 </div>
-                <p class="text-sm uppercase tracking-[0.28em] text-plum/70">{{ $event->isFree() ? 'Free registration' : 'Checkout' }}</p>
+                <p class="text-sm uppercase tracking-[0.28em] text-plum/70">{{ $checkoutIsFree ? 'Free registration' : 'Checkout' }}</p>
                 <h1 class="mt-4 text-4xl text-plum">{{ $event->title }}</h1>
                 <p class="mt-3 text-charcoal/75">{{ $event->summary }}</p>
                 @if (config('services.paystack.mode') === 'demo')
@@ -31,12 +31,23 @@
                         Demo payment mode is active. No real money will be charged.
                     </div>
                 @endif
-                @if ($event->isFree())
+                @if ($checkoutIsFree)
                     <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">There is no payment for this program. Complete the form to register and receive your ticket.</div>
                 @endif
                 @if ($freeRegistrationLink)
                     <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
                         Complimentary registration link: {{ $freeRegistrationRemaining }} of {{ $freeRegistrationLink->registration_limit }} registrations remaining. Expires {{ $freeRegistrationLink->expires_at->format('d M Y, H:i') }}.
+                    </div>
+                @endif
+                @if ($discountLink)
+                    <div class="mt-5 rounded-2xl border border-[#e27f7f]/30 bg-[#e27f7f]/10 px-4 py-3 text-sm text-plum">
+                        Private discount applied.
+                        @if ($discountLink->usage_limit !== null)
+                            {{ $discountLink->remainingUses() }} of {{ $discountLink->usage_limit }} ticket uses remaining.
+                        @endif
+                        @if ($discountLink->expires_at)
+                            Expires {{ $discountLink->expires_at->format('d M Y, H:i') }}.
+                        @endif
                     </div>
                 @endif
                 <div class="share-tools mt-5">
@@ -49,6 +60,9 @@
                     @if ($freeRegistrationLink)
                         <input type="hidden" name="free_access" value="{{ $freeAccessToken }}" />
                     @endif
+                    @if ($discountLink)
+                        <input type="hidden" name="discount_access" value="{{ $discountAccessToken }}" />
+                    @endif
 
                     <div>
                         <label for="name" class="mb-2 block text-sm font-medium text-plum">Full name</label>
@@ -58,20 +72,20 @@
                     <div>
                         <label for="ticket_type" class="mb-2 block text-sm font-medium text-plum">Ticket category</label>
                         <select id="ticket_type" name="ticket_type" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum">
-                            @foreach ($event->ticketOptions() as $ticketOption)
+                            @foreach ($ticketOptions as $ticketOption)
                                 <option value="{{ $ticketOption['slug'] }}" data-price="{{ $freeRegistrationLink ? 0 : $ticketOption['price'] }}" data-original-price="{{ $ticketOption['original_price'] }}" data-discounted="{{ $ticketOption['is_discounted'] ? 'true' : 'false' }}">{{ $ticketOption['name'] }} — {{ $freeRegistrationLink ? 'Complimentary' : ($ticketOption['is_discounted'] ? 'Was ' . number_format($ticketOption['original_price']) . ' ' . $event->currency . ', now ' . number_format($ticketOption['price']) . ' ' . $event->currency : ($ticketOption['price'] === 0 ? 'Free' : number_format($ticketOption['price']) . ' ' . $event->currency)) }}</option>
                             @endforeach
                         </select>
                         <p class="mt-2 flex items-baseline gap-2 text-sm">
-                            <del data-ticket-original class="text-charcoal/50 {{ $event->ticketOptions()[0]['is_discounted'] && ! $freeRegistrationLink ? '' : 'hidden' }}">{{ number_format($event->ticketOptions()[0]['original_price']) }} {{ $event->currency }}</del>
-                            <strong data-ticket-active class="text-[#d36d6d]">{{ $freeRegistrationLink ? 'Complimentary' : ($event->ticketOptions()[0]['price'] === 0 ? 'Free' : number_format($event->ticketOptions()[0]['price']) . ' ' . $event->currency) }}</strong>
+                            <del data-ticket-original class="text-charcoal/50 {{ $ticketOptions[0]['is_discounted'] && ! $freeRegistrationLink ? '' : 'hidden' }}">{{ number_format($ticketOptions[0]['original_price']) }} {{ $event->currency }}</del>
+                            <strong data-ticket-active class="text-[#d36d6d]">{{ $freeRegistrationLink ? 'Complimentary' : ($ticketOptions[0]['price'] === 0 ? 'Free' : number_format($ticketOptions[0]['price']) . ' ' . $event->currency) }}</strong>
                         </p>
                     </div>
 
                     <div>
                         <label for="quantity" class="mb-2 block text-sm font-medium text-plum">Number of tickets</label>
-                        <input id="quantity" name="quantity" type="number" min="1" max="{{ $freeRegistrationLink ? min(10, $freeRegistrationRemaining) : 10 }}" value="1" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum" />
-                        <p class="mt-2 text-xs text-charcoal/60">{{ $freeRegistrationLink ? 'Up to ' . min(10, $freeRegistrationRemaining) . ' complimentary tickets can be registered at once.' : 'You can purchase up to 10 tickets in one order.' }}</p>
+                        <input id="quantity" name="quantity" type="number" min="1" max="{{ $freeRegistrationLink ? min(10, $freeRegistrationRemaining) : ($discountLink && $discountLink->remainingUses() !== null ? min(10, $discountLink->remainingUses()) : 10) }}" value="1" required class="w-full rounded-2xl border border-[#dccbb1] bg-[#fffaf4] px-4 py-3 outline-none transition focus:border-plum" />
+                        <p class="mt-2 text-xs text-charcoal/60">{{ $freeRegistrationLink ? 'Up to ' . min(10, $freeRegistrationRemaining) . ' complimentary tickets can be registered at once.' : ($discountLink && $discountLink->remainingUses() !== null ? 'Up to ' . min(10, $discountLink->remainingUses()) . ' discounted tickets can be purchased at once.' : 'You can purchase up to 10 tickets in one order.') }}</p>
                     </div>
 
                     <div>
@@ -88,7 +102,7 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">{{ $freeRegistrationLink || $event->isFree() ? 'Complete free registration' : 'Continue to secure payment' }}</button>
+                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory transition hover:bg-charcoal">{{ $checkoutIsFree ? 'Complete free registration' : 'Continue to secure payment' }}</button>
                 </form>
             </div>
 
@@ -109,7 +123,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-4 border-t border-plum/10 pt-4 text-base font-semibold text-plum">
                         <span>Total</span>
-                        <span data-order-total>{{ $freeRegistrationLink || $event->ticketOptions()[0]['price'] === 0 ? 'Free' : number_format($event->ticketOptions()[0]['price']) . ' ' . $event->currency }}</span>
+                        <span data-order-total>{{ $freeRegistrationLink || $ticketOptions[0]['price'] === 0 ? 'Free' : number_format($ticketOptions[0]['price']) . ' ' . $event->currency }}</span>
                     </div>
                 </div>
             </aside>
@@ -124,16 +138,19 @@
             const ticketOriginal = document.querySelector('[data-ticket-original]');
             const ticketActive = document.querySelector('[data-ticket-active]');
             const currency = '{{ $event->currency }}';
+            const complimentary = @json((bool) $freeRegistrationLink);
             const updateTotal = () => {
                 const selectedTicket = ticketType?.selectedOptions[0];
                 const price = Number(selectedTicket?.dataset.price || 0);
                 const count = Number(quantity?.value || 1);
-                orderTotal.textContent = `${(price * count).toLocaleString()} ${currency}`;
+                orderTotal.textContent = price === 0 ? 'Free' : `${(price * count).toLocaleString()} ${currency}`;
                 if (ticketOriginal && ticketActive && selectedTicket) {
                     const isDiscounted = selectedTicket.dataset.discounted === 'true';
                     ticketOriginal.textContent = `${Number(selectedTicket.dataset.originalPrice).toLocaleString()} ${currency}`;
-                    ticketOriginal.classList.toggle('hidden', !isDiscounted || price === 0);
-                    ticketActive.textContent = price === 0 ? 'Free' : `${Number(selectedTicket.dataset.price).toLocaleString()} ${currency}`;
+                    ticketOriginal.classList.toggle('hidden', !isDiscounted || price === 0 || complimentary);
+                    ticketActive.textContent = complimentary
+                        ? 'Complimentary'
+                        : (price === 0 ? 'Free' : `${Number(selectedTicket.dataset.price).toLocaleString()} ${currency}`);
                 }
             };
             ticketType?.addEventListener('change', updateTotal);

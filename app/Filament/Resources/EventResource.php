@@ -61,15 +61,33 @@ class EventResource extends Resource
 
                 Forms\Components\Section::make('Ticket setup')
                     ->schema([
+                        Forms\Components\Select::make('discount_mode')
+                            ->label('Discount offer')
+                            ->options([
+                                'none' => 'No discount',
+                                'general' => 'General discount shown on the website',
+                                'link' => 'Private discount available by link',
+                            ])
+                            ->default('general')
+                            ->required()
+                            ->columnSpanFull(),
                         Forms\Components\TextInput::make('price')
                             ->numeric()
                             ->helperText('Use 0 for a free registration program. Use a positive amount to require payment. Add ticket categories below to define prices.'),
                         Forms\Components\TextInput::make('discount_price')
-                            ->label('Discount price in GHS')
+                            ->label('General discount price in GHS')
                             ->numeric()
+                            ->integer()
                             ->minValue(0)
                             ->rules(fn (Get $get): array => ['nullable', 'numeric', 'min:0', 'lt:' . (int) $get('price')])
-                            ->helperText('Optional. Must be lower than the event price. Used when no ticket categories are set.'),
+                            ->helperText('Public offer shown on event pages when General discount is selected.'),
+                        Forms\Components\TextInput::make('link_discount_price')
+                            ->label('Private link discount price in GHS')
+                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
+                            ->rules(fn (Get $get): array => ['nullable', 'numeric', 'min:0', 'lt:' . (int) $get('price')])
+                            ->helperText('Applied only to visitors using a valid event discount link.'),
                         Forms\Components\Repeater::make('ticket_options')
                             ->label('Ticket categories and prices')
                             ->schema([
@@ -83,16 +101,24 @@ class EventResource extends Resource
                                     ->required()
                                     ->minValue(0),
                                 Forms\Components\TextInput::make('discount_price')
-                                    ->label('Discount price in GHS')
+                                    ->label('General discount price in GHS')
                                     ->numeric()
+                                    ->integer()
                                     ->minValue(0)
                                     ->rules(fn (Get $get): array => ['nullable', 'numeric', 'min:0', 'lt:' . (int) $get('price')])
-                                    ->helperText('Optional; must be lower than the ticket price.'),
+                                    ->helperText('Public offer when General discount is selected.'),
+                                Forms\Components\TextInput::make('link_discount_price')
+                                    ->label('Private link discount price in GHS')
+                                    ->numeric()
+                                    ->integer()
+                                    ->minValue(0)
+                                    ->rules(fn (Get $get): array => ['nullable', 'numeric', 'min:0', 'lt:' . (int) $get('price')])
+                                    ->helperText('Only applied with a valid private discount link.'),
                             ])
                             ->columns(3)
                             ->defaultItems(0)
                             ->columnSpanFull()
-                            ->helperText('Every category must be 0 for free registration. Any positive category price sends the attendee through payment. Leave empty to use the event price and optional discount above as one Standard ticket.'),
+                            ->helperText('Every category must be 0 for free registration. Any positive category price sends the attendee through payment. Leave empty to use the event price and discount prices above as one Standard ticket.'),
                         Forms\Components\Select::make('currency')
                             ->options([
                                 'GHS' => 'GHS',

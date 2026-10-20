@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventDiscountLink;
 use App\Models\FreeRegistrationLink;
 use App\Models\Payment;
 use App\Models\SiteSetting;
@@ -96,8 +97,23 @@ class EventController extends Controller
         $freeAccessToken = (string) request()->query('free_access', '');
         $freeRegistrationLink = $this->findAvailableFreeRegistrationLink($event, $freeAccessToken);
         $freeRegistrationRemaining = $freeRegistrationLink?->remainingRegistrations();
+        $discountAccessToken = (string) request()->query('discount_access', '');
+        $discountLink = $this->findAvailableEventDiscountLink($event, $discountAccessToken);
+        abort_if($freeRegistrationLink && $discountLink, 422, 'Complimentary and discount links cannot be combined.');
+        $ticketOptions = $event->ticketOptions($discountLink ? 'link' : null);
+        $checkoutIsFree = $freeRegistrationLink !== null
+            || collect($ticketOptions)->every(fn (array $option): bool => $option['price'] === 0);
 
-        return view('events.checkout', compact('event', 'freeAccessToken', 'freeRegistrationLink', 'freeRegistrationRemaining'));
+        return view('events.checkout', compact(
+            'event',
+            'freeAccessToken',
+            'freeRegistrationLink',
+            'freeRegistrationRemaining',
+            'discountAccessToken',
+            'discountLink',
+            'ticketOptions',
+            'checkoutIsFree',
+        ));
     }
 
     public function ticketScanner(Request $request)
@@ -122,6 +138,14 @@ class EventController extends Controller
 
         $freeAccessToken = (string) $request->input('free_access', '');
         $freeRegistrationLink = $this->findAvailableFreeRegistrationLink($event, $freeAccessToken);
+        $discountAccessToken = (string) $request->input('discount_access', '');
+        $discountLink = $this->findAvailableEventDiscountLink($event, $discountAccessToken);
+
+        if ($freeRegistrationLink && $discountLink) {
+            throw ValidationException::withMessages([
+                'discount_access' => 'Complimentary and discount links cannot be combined.',
+            ]);
+        }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -133,7 +157,8 @@ class EventController extends Controller
         ]);
 
         $quantity = (int) $validated['quantity'];
-        $ticketOption = collect($event->ticketOptions())->firstWhere('slug', $validated['ticket_type']);
+        $ticketOption = collect($event->ticketOptions($discountLink ? 'link' : null))
+            ->firstWhere('slug', $validated['ticket_type']);
 
         if (! $ticketOption) {
             return back()->withErrors(['ticket_type' => 'Please select a valid ticket category.'])->withInput();
@@ -141,8 +166,9 @@ class EventController extends Controller
 
         $ticketPrice = $freeRegistrationLink ? 0 : (int) $ticketOption['price'];
         $paymentReference = 'SS-' . strtoupper(Str::random(12));
-        [$tickets, $ticketReferences, $payment] = DB::transaction(function () use ($freeRegistrationLink, $event, $request, $validated, $quantity, $ticketOption, $ticketPrice, $paymentReference): array {
+        [$tickets, $ticketReferences, $payment] = DB::transaction(function () use ($freeRegistrationLink, $discountLink, $event, $request, $validated, $quantity, $ticketOption, $ticketPrice, $paymentReference): array {
             $lockedLink = null;
+            $lockedDiscountLink = null;
 
             if ($freeRegistrationLink) {
                 $lockedLink = FreeRegistrationLink::query()
@@ -155,6 +181,25 @@ class EventController extends Controller
                 if ($quantity > $lockedLink->remainingRegistrations()) {
                     throw ValidationException::withMessages([
                         'quantity' => 'This link has only ' . $lockedLink->remainingRegistrations() . ' free registration(s) remaining.',
+                    ]);
+                }
+            }
+
+            if ($discountLink) {
+                $lockedDiscountLink = EventDiscountLink::query()
+                    ->whereKey($discountLink->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                abort_unless(
+                    $lockedDiscountLink?->isAvailable() && $event->discount_mode === 'link',
+                    410,
+                    'This discount link has expired or reached its usage limit.',
+                );
+
+                if ($lockedDiscountLink->remainingUses() !== null && $quantity > $lockedDiscountLink->remainingUses()) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'This discount link has only ' . $lockedDiscountLink->remainingUses() . ' use(s) remaining.',
                     ]);
                 }
             }
@@ -187,6 +232,12 @@ class EventController extends Controller
                 ]);
             }
 
+            if ($lockedDiscountLink) {
+                $lockedDiscountLink->update([
+                    'usage_count' => $lockedDiscountLink->usage_count + $quantity,
+                ]);
+            }
+
             $payment = Payment::create([
                 'event_id' => $event->id,
                 'ticket_id' => $tickets->first()->id,
@@ -195,7 +246,7 @@ class EventController extends Controller
                 'amount' => $ticketPrice * $quantity,
                 'currency' => $event->currency,
                 'status' => 'pending',
-                'gateway' => $lockedLink
+                'gateway' => $lockedLink || $ticketPrice === 0
                     ? 'complimentary'
                     : (config('services.paystack.mode') === 'demo' && ! app()->environment('production') ? 'demo' : 'paystack'),
                 'metadata' => [
@@ -207,6 +258,7 @@ class EventController extends Controller
                     'ticket_type_name' => $ticketOption['name'],
                     'ticket_ids' => $tickets->pluck('id')->all(),
                     'free_registration_link_id' => $lockedLink?->id,
+                    'event_discount_link_id' => $lockedDiscountLink?->id,
                 ],
             ]);
 
@@ -410,6 +462,26 @@ class EventController extends Controller
             ->first();
 
         abort_unless($link?->isAvailable(), 410, 'This free registration link has expired or reached its registration limit. Please contact the event organizer for a new link.');
+
+        return $link;
+    }
+
+    private function findAvailableEventDiscountLink(Event $event, string $token): ?EventDiscountLink
+    {
+        if ($token === '') {
+            return null;
+        }
+
+        $link = EventDiscountLink::query()
+            ->where('event_id', $event->id)
+            ->where('token_hash', hash('sha256', $token))
+            ->first();
+
+        abort_unless(
+            $link?->isAvailable() && $event->discount_mode === 'link',
+            410,
+            'This discount link is invalid, expired, or no longer active.',
+        );
 
         return $link;
     }

@@ -1,4 +1,5 @@
-@extends('layouts.events')
+ALTER TABLE `events`
+ADD COLUMN `discount_price` INT UNSIGNED NULL AFTER `price`;@extends('layouts.events')
 
 @push('meta')
     <link rel="icon" type="image/png" href="{{ request()->getHost() === 'events.thestellarsurge.com' ? 'https://thestellarsurge.com/logos/enable-technologies.png' : asset('logos/enable-technologies.png') }}">

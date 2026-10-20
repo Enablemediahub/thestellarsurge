@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Filament\Resources\EventResource\Pages\ListEvents;
 use App\Filament\Resources\EventResource\Pages\EditEvent;
+use App\Filament\Resources\EventDiscountLinkResource\Pages\ListEventDiscountLinks;
 use App\Filament\Resources\FreeRegistrationLinkResource\Pages\EditFreeRegistrationLink;
 use App\Filament\Resources\FreeRegistrationLinkResource\Pages\ListFreeRegistrationLinks;
 use App\Filament\Resources\PaymentResource\Pages\ListPayments;
@@ -11,6 +12,7 @@ use App\Filament\Resources\TicketResource;
 use App\Filament\Resources\TicketResource\Pages\ListTickets;
 use App\Mail\TicketIssued;
 use App\Models\Event;
+use App\Models\EventDiscountLink;
 use App\Models\FreeRegistrationLink;
 use App\Models\Payment;
 use App\Models\SiteSetting;
@@ -38,24 +40,86 @@ class EventSalesAdminTest extends TestCase
 
         Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()])
             ->fillForm([
+                'discount_mode' => 'link',
                 'price' => 250,
                 'discount_price' => 200,
+                'link_discount_price' => 180,
                 'ticket_options' => [
-                    ['name' => 'Single', 'price' => 100, 'discount_price' => 80],
-                    ['name' => 'Couple', 'price' => 150, 'discount_price' => 120],
+                    ['name' => 'Single', 'price' => 100, 'discount_price' => 80, 'link_discount_price' => 70],
+                    ['name' => 'Couple', 'price' => 150, 'discount_price' => 120, 'link_discount_price' => 110],
                 ],
             ])
             ->call('save')
             ->assertHasNoFormErrors();
 
         $event->refresh();
+        $this->assertSame('link', $event->discount_mode);
         $this->assertSame(200, $event->discount_price);
-        $this->assertSame(80, $event->ticketOptions()[0]['price']);
+        $this->assertSame(180, $event->link_discount_price);
+        $this->assertSame(100, $event->ticketOptions()[0]['price']);
         $this->assertSame(100, $event->ticketOptions()[0]['original_price']);
-        $this->assertSame(120, $event->ticketOptions()[1]['price']);
+        $this->assertSame(70, $event->ticketOptions('link')[0]['price']);
+        $this->assertSame(110, $event->ticketOptions('link')[1]['price']);
 
         $event->update(['ticket_options' => []]);
-        $this->assertSame(200, $event->fresh()->ticketOptions()[0]['price']);
+        $this->assertSame(180, $event->fresh()->ticketOptions('link')[0]['price']);
+    }
+
+    public function test_admin_can_generate_and_manage_private_discount_links(): void
+    {
+        $admin = User::factory()->create();
+        $event = $this->makeEvent();
+        $event->update([
+            'discount_mode' => 'link',
+            'ticket_options' => [
+                ['name' => 'Single', 'price' => 100, 'link_discount_price' => 80],
+                ['name' => 'Couple', 'price' => 150, 'link_discount_price' => 120],
+            ],
+        ]);
+        $this->actingAs($admin);
+
+        Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()])
+            ->assertActionExists('viewDiscountLinks')
+            ->assertActionExists('generateDiscountLink')
+            ->callAction('generateDiscountLink', data: [
+                'label' => 'Speakers',
+                'usage_limit' => 5,
+                'expires_at' => now()->addDays(3)->toDateTimeString(),
+            ])
+            ->assertNotified('Discount link created for Speakers');
+
+        $link = EventDiscountLink::query()->where('event_id', $event->id)->firstOrFail();
+        $this->assertSame('Speakers', $link->label);
+        $this->assertSame(5, $link->usage_limit);
+        $this->assertSame($admin->id, $link->created_by);
+        $this->assertTrue($link->expires_at->isFuture());
+
+        $discountUrl = app(\App\Services\EventDiscountLinkService::class)->checkoutUrlForLink($link);
+
+        Livewire::test(ListEventDiscountLinks::class)
+            ->assertSee('Speakers')
+            ->assertSee('Active')
+            ->assertSee($discountUrl)
+            ->assertTableActionExists('showLink', record: $link)
+            ->mountTableAction('showLink', $link)
+            ->assertSee($discountUrl)
+            ->assertSee('Copy');
+    }
+
+    public function test_discount_link_action_is_visible_before_configuration_and_explains_requirements(): void
+    {
+        $admin = User::factory()->create();
+        $event = $this->makeEvent();
+        $this->actingAs($admin);
+
+        Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()])
+            ->assertActionExists('generateDiscountLink')
+            ->callAction('generateDiscountLink', data: [
+                'label' => 'Guests',
+            ])
+            ->assertNotified('Private discount is not configured');
+
+        $this->assertDatabaseCount('event_discount_links', 0);
     }
 
     public function test_sales_tables_show_customer_and_ticket_category(): void

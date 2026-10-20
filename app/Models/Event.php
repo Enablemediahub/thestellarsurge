@@ -23,6 +23,8 @@ class Event extends Model
         'location_url',
         'price',
         'discount_price',
+        'link_discount_price',
+        'discount_mode',
         'ticket_options',
         'currency',
         'banner_image',
@@ -37,6 +39,7 @@ class Event extends Model
         'featured' => 'boolean',
         'price' => 'integer',
         'discount_price' => 'integer',
+        'link_discount_price' => 'integer',
         'ticket_options' => 'array',
     ];
 
@@ -53,6 +56,11 @@ class Event extends Model
     public function freeRegistrationLinks(): HasMany
     {
         return $this->hasMany(FreeRegistrationLink::class);
+    }
+
+    public function discountLinks(): HasMany
+    {
+        return $this->hasMany(EventDiscountLink::class);
     }
 
     public function activeFreeRegistrationLink(): ?FreeRegistrationLink
@@ -91,8 +99,11 @@ class Event extends Model
         return $storageBaseUrl . '/storage/' . ltrim($this->banner_image, '/');
     }
 
-    public function ticketOptions(): array
+    public function ticketOptions(?string $discountMode = null): array
     {
+        $discountMode ??= $this->discount_mode === 'general' ? 'general' : null;
+        $discountMode = in_array($discountMode, ['general', 'link'], true) ? $discountMode : null;
+
         $options = collect($this->ticket_options ?: [])
             ->filter(fn (array $option): bool => filled($option['name'] ?? null) && is_numeric($option['price'] ?? null))
             ->map(fn (array $option): array => $this->formatTicketOption(
@@ -100,17 +111,38 @@ class Event extends Model
                 $option['slug'] ?? Str::slug($option['name']),
                 (int) $option['price'],
                 $option['discount_price'] ?? null,
+                $option['link_discount_price'] ?? null,
+                $discountMode,
             ))
             ->values()
             ->all();
 
         return $options ?: [
-            $this->formatTicketOption('Standard', 'standard', (int) $this->price, $this->discount_price),
+            $this->formatTicketOption(
+                'Standard',
+                'standard',
+                (int) $this->price,
+                $this->discount_price,
+                $this->link_discount_price,
+                $discountMode,
+            ),
         ];
     }
 
-    private function formatTicketOption(string $name, string $slug, int $price, mixed $discountPrice): array
+    private function formatTicketOption(
+        string $name,
+        string $slug,
+        int $price,
+        mixed $generalDiscountPrice,
+        mixed $linkDiscountPrice,
+        ?string $discountMode,
+    ): array
     {
+        $discountPrice = match ($discountMode) {
+            'general' => $generalDiscountPrice,
+            'link' => $linkDiscountPrice,
+            default => null,
+        };
         $discountPrice = is_numeric($discountPrice) ? (int) $discountPrice : null;
         $isDiscounted = $discountPrice !== null && $discountPrice >= 0 && $discountPrice < $price;
 
@@ -120,6 +152,7 @@ class Event extends Model
             'original_price' => $price,
             'price' => $isDiscounted ? $discountPrice : $price,
             'is_discounted' => $isDiscounted,
+            'discount_mode' => $isDiscounted ? $discountMode : null,
         ];
     }
 
